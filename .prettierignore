@@ -1,0 +1,4 @@
+node_modules
+dist
+public/mockServiceWorker.js
+src/app/router/routeTree.gen.ts
