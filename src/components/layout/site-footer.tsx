@@ -3,6 +3,8 @@ import type { FormEvent } from 'react'
 
 import { BrandLogo } from '@/components/brand-logo'
 import { CATEGORIES } from '@/shared/constants/catalog'
+import { ImageIcon, MessageIcon, UserIcon } from '../icons'
+import { Button } from '../ui/button'
 
 const profileLinks = ['Meu perfil', 'Minha coleção', 'Atividade', 'Estúdio do criador', 'Lista de interesse']
 const helpLinks = ['Central de ajuda', 'Como comprar NFTs', 'Carteira e segurança', 'Política do mercado', 'Denunciar item']
@@ -21,9 +23,9 @@ function QuietList({ title, items }: { title: string; items: string[] }) {
   )
 }
 
-function Mark({ children }: { children: string }) {
+function Mark({ children }: { children: React.ReactNode }) {
   return (
-    <span className="grid size-10 place-items-center rounded-full bg-primary text-2xl font-bold text-ink">
+    <span className="grid size-16 place-items-center rounded-full bg-primary text-2xl font-bold text-ink">
       {children}
     </span>
   )
@@ -35,10 +37,10 @@ export function SiteFooter() {
   }
 
   return (
-    <footer className="mx-auto mt-16 w-full max-w-[1440px] px-4 pb-8 md:px-8 xl:px-[120px]">
-      <section className="grid gap-8 rounded-md bg-card p-6 lg:grid-cols-[1fr_1fr_1fr_1.1fr] lg:p-8">
-        <article className="flex gap-4">
-          <Mark>W</Mark>
+    <footer className="mx-auto mt-24 w-full max-w-[1440px] px-4 pb-8 md:px-8 xl:px-[120px]">
+      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 rounded-md bg-card p-8">
+        <article className="flex flex-col gap-4 border-r pr-6 border-border">
+          <Mark><ImageIcon className="size-6" /></Mark>
           <div>
             <h2 className="text-[17px] font-bold">Segurança da carteira</h2>
             <p className="mt-2 text-sm leading-6 text-secondary">
@@ -46,8 +48,8 @@ export function SiteFooter() {
             </p>
           </div>
         </article>
-        <article className="flex gap-4">
-          <Mark>C</Mark>
+        <article className="flex flex-col gap-4 border-r pr-6 border-border">
+          <Mark><UserIcon className="size-6" /></Mark>
           <div>
             <h2 className="text-[17px] font-bold">Criadores em destaque</h2>
             <p className="mt-2 text-sm leading-6 text-secondary">
@@ -55,8 +57,8 @@ export function SiteFooter() {
             </p>
           </div>
         </article>
-        <article className="flex gap-4">
-          <Mark>D</Mark>
+        <article className="flex flex-col gap-4 border-r pr-6  border-border">
+          <Mark><MessageIcon className="size-6" /></Mark>
           <div>
             <h2 className="text-[17px] font-bold">Alertas de lançamentos</h2>
             <p className="mt-2 text-sm leading-6 text-secondary">
@@ -64,22 +66,25 @@ export function SiteFooter() {
             </p>
           </div>
         </article>
-        <form onSubmit={onNewsletterSubmit} className="border-t border-border pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
+        <form onSubmit={onNewsletterSubmit} className="border-t border-border pt-6 lg:border-t-0 lg:pt-0">
           <h2 className="text-lg font-bold">Antecipe-se ao próximo lançamento</h2>
-          <div className="mt-4 flex items-center gap-3 border-b border-border-soft">
+          <div className="mt-4 flex items-center gap-3">
             <label className="sr-only" htmlFor="newsletter-email">
               E-mail
             </label>
-            <input
-              id="newsletter-email"
-              type="email"
-              name="email"
-              placeholder="digite seu e-mail..."
-              className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted"
-            />
-            <button type="submit" className="text-lg font-bold text-accent">
-              Enviar
-            </button>
+            <div className="bg-surface-dark rounded-md flex items-center flex-nowrap">
+              <input
+                id="newsletter-email"
+                type="email"
+                name="email"
+                placeholder="digite seu e-mail..."
+                className="h-10 w-full pl-4 bg-transparent text-sm outline-none border-none placeholder:text-muted"
+              />
+              <Button size="sm" type="submit" className="rounded-l-none h-10">
+                Enviar
+              </Button>
+            </div>
+
           </div>
           <p className="mt-3 text-[13px] leading-5 text-secondary">
             Receba lançamentos selecionados, histórias de criadores e novidades do mercado.
@@ -87,7 +92,7 @@ export function SiteFooter() {
         </form>
       </section>
 
-      <div className="mt-8 flex flex-col gap-3 border-b border-border pb-6 text-sm text-secondary md:flex-row md:items-center md:justify-between">
+      <div className="bg-surface-dark grid gap-6 sm:grid-cols-2 lg:grid-cols-4 py-6 px-8 text-sm text-foreground-soft items-center">
         <BrandLogo />
         <p>
           Feito para colecionadores,
@@ -101,7 +106,7 @@ export function SiteFooter() {
         </a>
       </div>
 
-      <div className="grid gap-8 py-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="bg-card grid gap-6 p-8 sm:grid-cols-2 lg:grid-cols-4">
         <QuietList title="Meu perfil" items={profileLinks} />
         <QuietList title="Central de ajuda" items={helpLinks} />
         <div>
@@ -136,7 +141,7 @@ export function SiteFooter() {
           </p>
         </div>
       </div>
-      <p className="text-center text-sm text-secondary">© 2026 Kurio. Propriedade digital para todos.</p>
+      <p className="text-center text-sm text-secondary mt-6">© 2026 Kurio. Propriedade digital para todos.</p>
     </footer>
   )
 }

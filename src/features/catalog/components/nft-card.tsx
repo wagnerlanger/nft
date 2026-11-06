@@ -27,7 +27,7 @@ export function NftCard({ nft }: { nft: Nft }) {
           <img
             src={nft.imageUrl}
             alt=""
-            className="h-[86%] w-full object-cover rounded-[22px] transition-transform duration-300 ease-out group-hover:-translate-y-2"
+            className="h-[86%] w-full object-cover rounded-3xl transition-transform duration-300 ease-out group-hover:-translate-y-2"
           />
           {nft.isRare ? (
             <span className="pointer-events-none absolute left-0 top-[14px] grid h-[29px] w-20 place-items-center bg-primary text-sm font-medium text-ink">

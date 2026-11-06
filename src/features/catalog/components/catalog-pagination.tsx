@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from '@/components/icons'
+import { ChevronRightIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 
 export function CatalogPagination({
@@ -22,7 +22,7 @@ export function CatalogPagination({
           key={item}
           variant={item === page ? 'primary' : 'outline'}
           size="sm"
-          className="border-card"
+          className="border-card min-w-[36px]"
           aria-current={item === page ? 'page' : undefined}
           onClick={() => onPageChange(item)}
         >
@@ -32,12 +32,12 @@ export function CatalogPagination({
       <Button
         variant="outline"
         size="sm"
-        className="px-2 border-card"
+        className="px-2 border-card min-w-[36px]"
         aria-label="Próxima página"
         disabled={page >= pages}
         onClick={() => onPageChange(page + 1)}
       >
-        <ArrowRightIcon className="size-5" />
+        <ChevronRightIcon className="size-5" />
       </Button>
     </nav>
   )

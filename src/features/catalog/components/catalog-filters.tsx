@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import type { NftListResponse } from '@/features/catalog/types'
-import { formatEthComma } from '@/shared/formatters/eth'
 import { fromCents, toCents } from '@/shared/formatters/money'
 import type { CatalogSearch } from '@/shared/utils/catalog-search'
 import { parseCategoryList, parseChainList, toggleCsv } from '@/shared/utils/catalog-search'
@@ -79,7 +78,7 @@ export function CatalogFilters({ idPrefix, search, facets, onSearchChange }: Cat
             aria-labelledby={`${idPrefix}-price`}
           />
           <p id={`${idPrefix}-price`} className="pt-4 text-[15px] text-foreground-soft">
-            Preço: {formatEthComma(minLabel)} - {formatEthComma(maxLabel)} ETH
+            Preço: {minLabel} - {maxLabel} ETH
           </p>
           <Button
             className="mt-4"
