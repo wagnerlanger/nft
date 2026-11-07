@@ -2,10 +2,11 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
 import { BrandLogo } from '@/components/brand-logo'
-import { CartIcon, CloseIcon, EnterIcon, SearchIcon } from '@/components/icons'
+import { CartIcon, CloseIcon, EnterIcon, SearchIcon, UserIcon } from '@/components/icons'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { firstNameFromDisplay, useAuth } from '@/features/auth/hooks/use-auth'
 import type { CatalogSearch } from '@/shared/utils/catalog-search'
-import { Button } from '../ui/button'
 
 const quietLinks = ['Criadores', 'Aprenda']
 
@@ -21,6 +22,7 @@ function useCatalogQuery() {
 export function SiteHeader() {
   const navigate = useNavigate()
   const urlQuery = useCatalogQuery()
+  const { isAuthenticated, session, openAuth } = useAuth()
   const [draft, setDraft] = useState(urlQuery)
   const [syncedQuery, setSyncedQuery] = useState(urlQuery)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -59,8 +61,26 @@ export function SiteHeader() {
     />
   )
 
+  const accountControl = isAuthenticated && session ? (
+    <Button asChild variant="ghost" className="h-9 gap-2 px-2 text-base text-foreground-soft">
+      <Link to="/account" aria-label={`Perfil de ${session.user.displayName}`}>
+        <UserIcon className="size-5" />
+        <span className="hidden sm:inline">{firstNameFromDisplay(session.user.displayName)}</span>
+      </Link>
+    </Button>
+  ) : (
+    <Button
+      size="sm"
+      className="ml-0 inline-flex items-center gap-2 lg:ml-3"
+      onClick={() => openAuth('login')}
+    >
+      <EnterIcon className="size-4" />
+      Entrar
+    </Button>
+  )
+
   return (
-    <header className="sticky top-0 z-50 mx-auto w-full max-w-[1440px] px-4 md:px-8 xl:px-[120px] backdrop-blur-lg">
+    <header className="sticky top-0 z-50 mx-auto w-full max-w-[1440px] px-4 backdrop-blur-lg md:px-8 xl:px-[120px]">
       <div className="flex items-center justify-between gap-4 border-border border-b">
         <BrandLogo className="text-sm" />
         <nav aria-label="Principal" className="hidden items-center gap-8 md:flex">
@@ -75,7 +95,10 @@ export function SiteHeader() {
             Mercado
           </a>
           {quietLinks.map((label) => (
-            <span key={label} className="border-b-2 cursor-pointer border-transparent py-5 text-base text-foreground-soft hover:text-primary">
+            <span
+              key={label}
+              className="cursor-pointer border-b-2 border-transparent py-5 text-base text-foreground-soft hover:text-primary"
+            >
               {label}
             </span>
           ))}
@@ -83,38 +106,56 @@ export function SiteHeader() {
         <div className="hidden items-center gap-2 lg:flex">
           {searchOpen || urlQuery ? (
             <div className="relative z-2">
-              <div className="w-56 absolute right-8">{searchField}</div>
+              <div className="absolute right-8 w-56">{searchField}</div>
               <Button
-                onClick={() => { setDraft(""); setSearchOpen(false); }}
-                variant="ghost" className="h-9 px-2 text-base" aria-label="Fechar busca">
+                onClick={() => {
+                  setDraft('')
+                  setSearchOpen(false)
+                }}
+                variant="ghost"
+                className="h-9 px-2 text-base"
+                aria-label="Fechar busca"
+              >
                 <CloseIcon className="size-5" />
               </Button>
             </div>
           ) : (
             <Button
               onClick={() => setSearchOpen(true)}
-              variant="ghost" className="h-9 px-2 text-base" aria-label="Abrir busca">
+              variant="ghost"
+              className="h-9 px-2 text-base"
+              aria-label="Abrir busca"
+            >
               <SearchIcon className="size-5" />
             </Button>
           )}
           <Button variant="ghost" className="h-9 px-2 text-base" aria-label="Carrinho">
             <CartIcon className="size-6" />
           </Button>
-          <Button size="sm" className="ml-3 inline-flex items-center gap-2">
-            <EnterIcon className="size-4" />
-            Entrar
-          </Button>
+          {accountControl}
         </div>
         <div className="flex items-center gap-3 lg:hidden">
           <button type="button" className="text-foreground-soft" aria-label="Carrinho">
             <CartIcon className="size-6" />
           </button>
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-ink"
-          >
-            Entrar
-          </button>
+          {isAuthenticated && session ? (
+            <Link
+              to="/account"
+              className="inline-flex h-9 items-center gap-2 px-1 text-sm text-foreground-soft"
+              aria-label={`Perfil de ${session.user.displayName}`}
+            >
+              <UserIcon className="size-5" />
+              <span>{firstNameFromDisplay(session.user.displayName)}</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-ink"
+              onClick={() => openAuth('login')}
+            >
+              Entrar
+            </button>
+          )}
         </div>
       </div>
       <div className="py-3 lg:hidden">{searchField}</div>

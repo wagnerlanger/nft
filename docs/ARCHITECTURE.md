@@ -1,6 +1,6 @@
 # Arquitetura desta etapa
 
-A aplicação é um marketplace Kurio em Vite, React e TypeScript. Esta etapa entrega a fundação e a página inicial funcional. Login, carrinho, checkout, perfil, carteiras, Socket.IO, Playwright e Lighthouse ficam para as etapas seguintes.
+A aplicação é um marketplace Kurio em Vite, React e TypeScript. Esta etapa inclui a fundação, o catálogo e o modal de autenticação (login/cadastro) com sessão MSW. Carrinho, checkout, perfil completo, carteiras, Socket.IO, Playwright e Lighthouse ficam para as etapas seguintes.
 
 ## Referência visual
 
@@ -10,7 +10,7 @@ O layout, as cores e a tipografia vêm do arquivo Figma `taPnBgwLKnMSta0L3qCmYI`
 - Página `#140d0a`, card `#241612`, primária `#d28a4c`, acento `#e89b55`.
 - A arte de todos os NFTs é `public/images/nft.png`, cópia de `prints/nft.png`. As ilustrações originais do Figma não entram nesta etapa.
 - Busca, carrinho e o ícone de Entrar usam os vetores Iconly exportados do header. Setas de ordenação e paginação são traços no mesmo estilo.
-- Criadores, Aprenda, carrinho, Entrar, newsletter, Diário da Cunhagem e os links de perfil/ajuda aparecem na página e não concluem ação. Mercado e as coleções do rodapé levam ao catálogo.
+- Criadores, Aprenda, carrinho e Diário da Cunhagem ainda são quiet. Mercado e as coleções do rodapé levam ao catálogo. Entrar abre o modal de auth; links de “Meu perfil” no footer pedem login ou vão para `/account`. Newsletter valida e-mail com Zod e simula o envio.
 
 ## Pastas
 
@@ -41,3 +41,14 @@ localStorage.setItem('kurio:scenario', 'slow')
 ```
 
 Recarregue a página depois de trocar o cenário. `localStorage.removeItem('kurio:scenario')` volta ao sucesso.
+
+## Autenticação (esta etapa)
+
+Modal centrado com abas Entrar / Criar conta. Handlers MSW em `/api/auth/login`, `/api/auth/register`, `/api/auth/session` e `/api/auth/logout`. Senhas nas fixtures ficam só como SHA-256. Token em `localStorage` (`kurio:session-token`).
+
+Credenciais de demonstração (senha `Kurio123!`):
+
+- `colecionador@kurio.dev` — Ana Colecionadora
+- `curator@kurio.dev` — Bruno Curator
+
+Após login, o header mostra ícone de usuário + primeiro nome e leva a `/account` (stub do perfil).

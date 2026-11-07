@@ -13,7 +13,7 @@ Não desenvolva apenas uma demonstração visual. Todos os fluxos principais dev
 # 1. Referências e requisitos
 
 **Design no Figma:**
-https://www.figma.com/design/Ff0SksUi7UFtPWUO8kyNtw/Frontend-Challenge?node-id=0-1
+https://www.figma.com/design/taPnBgwLKnMSta0L3qCmYI/Frontend-Challenge--Copy-?node-id=70492-696
 
 O Figma é a referência visual oficial. Antes de implementar as telas, analise os frames disponíveis, identificando:
 

@@ -11,10 +11,28 @@ export const http = axios.create({
   },
 })
 
+const SESSION_TOKEN_KEY = 'kurio:session-token'
+
+export function getStoredSessionToken() {
+  return window.localStorage.getItem(SESSION_TOKEN_KEY)
+}
+
+export function setStoredSessionToken(token: string | null) {
+  if (!token) {
+    window.localStorage.removeItem(SESSION_TOKEN_KEY)
+    return
+  }
+  window.localStorage.setItem(SESSION_TOKEN_KEY, token)
+}
+
 http.interceptors.request.use((config) => {
   const scenario = window.localStorage.getItem('kurio:scenario')
   if (scenario && scenario !== 'success') {
     config.headers.set(SCENARIO_HEADER, scenario)
+  }
+  const token = getStoredSessionToken()
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`)
   }
   return config
 })

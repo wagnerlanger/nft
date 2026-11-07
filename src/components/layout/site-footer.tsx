@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router'
-import type { FormEvent, SVGProps } from 'react'
+import { useState, type FormEvent, type SVGProps } from 'react'
 
 import { BrandLogo } from '@/components/brand-logo'
-import { CATEGORIES } from '@/shared/constants/catalog'
 import {
+  CloseIcon,
   FacebookIcon,
   ImageIcon,
   InstagramIcon,
@@ -11,10 +11,14 @@ import {
   MessageIcon,
   TwitterIcon,
   UserIcon,
-} from '../icons'
-import { Button } from '../ui/button'
+} from '@/components/icons'
+import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { useAuth } from '@/features/auth/hooks/use-auth'
+import { newsletterEmailSchema } from '@/features/auth/schemas'
+import { CATEGORIES } from '@/shared/constants/catalog'
 
-type FooterLink = { name: string; url: string }
+type FooterLink = { name: string; url: string; profile?: boolean }
 type SocialLink = {
   name: string
   url: string
@@ -22,11 +26,11 @@ type SocialLink = {
 }
 
 const profileLinks: FooterLink[] = [
-  { name: 'Meu perfil', url: '/' },
-  { name: 'Minha coleção', url: '/' },
-  { name: 'Atividade', url: '/' },
-  { name: 'Estúdio do criador', url: '/' },
-  { name: 'Lista de interesse', url: '/' },
+  { name: 'Meu perfil', url: '/account', profile: true },
+  { name: 'Minha coleção', url: '/account', profile: true },
+  { name: 'Atividade', url: '/account', profile: true },
+  { name: 'Estúdio do criador', url: '/account', profile: true },
+  { name: 'Lista de interesse', url: '/account', profile: true },
 ]
 const helpLinks: FooterLink[] = [
   { name: 'Central de ajuda', url: '/' },
@@ -43,16 +47,40 @@ const socials: SocialLink[] = [
 ]
 const wallets = ['METAMASK', 'WALLETCONNECT', 'COINBASE']
 
-function QuietList({ title, items }: { title: string; items: FooterLink[] }) {
+function QuietList({
+  title,
+  items,
+  onProfileClick,
+  isAuthenticated,
+}: {
+  title: string
+  items: FooterLink[]
+  onProfileClick?: () => void
+  isAuthenticated?: boolean
+}) {
   return (
     <div>
       <h3 className="text-lg font-bold text-foreground">{title}</h3>
       <ul className="mt-4 space-y-2 text-sm text-secondary">
         {items.map((item) => (
           <li key={item.name}>
-            <Link to={item.url} className="hover:text-accent">
-              {item.name}
-            </Link>
+            {item.profile && !isAuthenticated ? (
+              <button
+                type="button"
+                className="hover:text-accent"
+                onClick={onProfileClick}
+              >
+                {item.name}
+              </button>
+            ) : item.profile ? (
+              <Link to="/account" className="hover:text-accent">
+                {item.name}
+              </Link>
+            ) : (
+              <Link to={item.url} className="hover:text-accent">
+                {item.name}
+              </Link>
+            )}
           </li>
         ))}
       </ul>
@@ -68,16 +96,108 @@ function Mark({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function SiteFooter() {
-  function onNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
+function NewsletterBlock() {
+  const [email, setEmail] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [attempted, setAttempted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  function validateEmail(value: string) {
+    const parsed = newsletterEmailSchema.safeParse({ email: value })
+    if (parsed.success) {
+      setError(null)
+      return true
+    }
+    setError(parsed.error.issues[0]?.message ?? 'Informe um e-mail válido.')
+    return false
+  }
+
+  function updateEmail(value: string) {
+    setEmail(value)
+    if (attempted) validateEmail(value)
+  }
+
+  async function onNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setAttempted(true)
+    if (!validateEmail(email)) return
+
+    setLoading(true)
+    await new Promise((resolve) => window.setTimeout(resolve, 1000))
+    setLoading(false)
+    setSuccess(true)
+    setAttempted(false)
+    setEmail('')
+  }
+
+  function resetNewsletter() {
+    setSuccess(false)
+    setError(null)
+    setAttempted(false)
+    setEmail('')
   }
 
   return (
+    <div className="border-t border-border pt-6 lg:border-t-0 lg:pt-0">
+      <h2 className="text-lg font-bold">Antecipe-se ao próximo lançamento</h2>
+      {success ? (
+        <div className="mt-4 space-y-4" role="status">
+          <p className="text-sm leading-6 text-secondary">
+            Pronto! Você receberá lançamentos selecionados neste e-mail.
+          </p>
+          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={resetNewsletter}>
+            <CloseIcon className="size-4" />
+            Fechar
+          </Button>
+        </div>
+      ) : (
+        <form onSubmit={onNewsletterSubmit}>
+          <div className="mt-4 flex items-center gap-3">
+            <label className="sr-only" htmlFor="newsletter-email">
+              E-mail
+            </label>
+            <div className="flex flex-nowrap items-center rounded-md bg-surface-dark">
+              <input
+                id="newsletter-email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={(event) => updateEmail(event.target.value)}
+                placeholder="digite seu e-mail..."
+                className="h-10 w-full border-none bg-transparent pl-4 text-sm outline-none placeholder:text-muted"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'newsletter-email-error' : undefined}
+              />
+              <SubmitButton size="sm" loading={loading} className="h-10 rounded-l-none">
+                Enviar
+              </SubmitButton>
+            </div>
+          </div>
+          {error ? (
+            <p id="newsletter-email-error" className="mt-2 text-xs text-destructive">
+              {error}
+            </p>
+          ) : null}
+          <p className="mt-3 text-[13px] leading-5 text-secondary">
+            Receba lançamentos selecionados, histórias de criadores e novidades do mercado.
+          </p>
+        </form>
+      )}
+    </div>
+  )
+}
+
+export function SiteFooter() {
+  const { isAuthenticated, openAuth } = useAuth()
+
+  return (
     <footer className="mx-auto mt-24 w-full max-w-[1440px] px-4 pb-8 md:px-8 xl:px-[120px]">
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 rounded-md bg-card p-8">
-        <article className="flex flex-col gap-4 border-r pr-6 border-border">
-          <Mark><ImageIcon className="size-6" /></Mark>
+      <section className="grid gap-6 rounded-md bg-card p-8 sm:grid-cols-2 lg:grid-cols-4">
+        <article className="flex flex-col gap-4 border-border border-r pr-6">
+          <Mark>
+            <ImageIcon className="size-6" />
+          </Mark>
           <div>
             <h2 className="text-[17px] font-bold">Segurança da carteira</h2>
             <p className="mt-2 text-sm leading-6 text-secondary">
@@ -85,8 +205,10 @@ export function SiteFooter() {
             </p>
           </div>
         </article>
-        <article className="flex flex-col gap-4 border-r pr-6 border-border">
-          <Mark><UserIcon className="size-6" /></Mark>
+        <article className="flex flex-col gap-4 border-border border-r pr-6">
+          <Mark>
+            <UserIcon className="size-6" />
+          </Mark>
           <div>
             <h2 className="text-[17px] font-bold">Criadores em destaque</h2>
             <p className="mt-2 text-sm leading-6 text-secondary">
@@ -94,8 +216,10 @@ export function SiteFooter() {
             </p>
           </div>
         </article>
-        <article className="flex flex-col gap-4 border-r pr-6  border-border">
-          <Mark><MessageIcon className="size-6" /></Mark>
+        <article className="flex flex-col gap-4 border-border border-r pr-6">
+          <Mark>
+            <MessageIcon className="size-6" />
+          </Mark>
           <div>
             <h2 className="text-[17px] font-bold">Alertas de lançamentos</h2>
             <p className="mt-2 text-sm leading-6 text-secondary">
@@ -103,33 +227,10 @@ export function SiteFooter() {
             </p>
           </div>
         </article>
-        <form onSubmit={onNewsletterSubmit} className="border-t border-border pt-6 lg:border-t-0 lg:pt-0">
-          <h2 className="text-lg font-bold">Antecipe-se ao próximo lançamento</h2>
-          <div className="mt-4 flex items-center gap-3">
-            <label className="sr-only" htmlFor="newsletter-email">
-              E-mail
-            </label>
-            <div className="bg-surface-dark rounded-md flex items-center flex-nowrap">
-              <input
-                id="newsletter-email"
-                type="email"
-                name="email"
-                placeholder="digite seu e-mail..."
-                className="h-10 w-full pl-4 bg-transparent text-sm outline-none border-none placeholder:text-muted"
-              />
-              <Button size="sm" type="submit" className="rounded-l-none h-10">
-                Enviar
-              </Button>
-            </div>
-
-          </div>
-          <p className="mt-3 text-[13px] leading-5 text-secondary">
-            Receba lançamentos selecionados, histórias de criadores e novidades do mercado.
-          </p>
-        </form>
+        <NewsletterBlock />
       </section>
 
-      <div className="bg-surface-dark grid gap-6 sm:grid-cols-2 lg:grid-cols-4 py-6 px-8 text-sm text-foreground-soft items-center">
+      <div className="grid items-center gap-6 bg-surface-dark px-8 py-6 text-sm text-foreground-soft sm:grid-cols-2 lg:grid-cols-4">
         <BrandLogo />
         <p>
           Feito para colecionadores,
@@ -143,8 +244,13 @@ export function SiteFooter() {
         </a>
       </div>
 
-      <div className="bg-card grid gap-6 p-8 sm:grid-cols-2 lg:grid-cols-4">
-        <QuietList title="Meu perfil" items={profileLinks} />
+      <div className="grid gap-6 bg-card p-8 sm:grid-cols-2 lg:grid-cols-4">
+        <QuietList
+          title="Meu perfil"
+          items={profileLinks}
+          isAuthenticated={isAuthenticated}
+          onProfileClick={() => openAuth('login')}
+        />
         <QuietList title="Central de ajuda" items={helpLinks} />
         <div>
           <h3 className="text-lg font-bold">Coleções</h3>
@@ -197,7 +303,7 @@ export function SiteFooter() {
           </div>
         </div>
       </div>
-      <p className="text-center text-sm text-secondary mt-6">© 2026 Kurio. Propriedade digital para todos.</p>
+      <p className="mt-6 text-center text-sm text-secondary">© 2026 Kurio. Propriedade digital para todos.</p>
     </footer>
   )
 }
