@@ -8,6 +8,10 @@ export type UserRecord = {
   username: string
   displayName: string
   passwordHash: string
+  ensName: string
+  ensSuffix: string
+  walletNickname: string
+  avatarUrl: string | null
 }
 
 export const seedUsers: UserRecord[] = [
@@ -17,6 +21,10 @@ export const seedUsers: UserRecord[] = [
     username: 'ana.colecionadora',
     displayName: 'Ana Colecionadora',
     passwordHash: DEMO_PASSWORD_HASH,
+    ensName: 'ana',
+    ensSuffix: '.eth',
+    walletNickname: 'Carteira principal',
+    avatarUrl: null,
   },
   {
     id: 'user-bruno',
@@ -24,5 +32,9 @@ export const seedUsers: UserRecord[] = [
     username: 'bruno.curator',
     displayName: 'Bruno Curator',
     passwordHash: DEMO_PASSWORD_HASH,
+    ensName: 'bruno',
+    ensSuffix: '.eth',
+    walletNickname: 'Curator wallet',
+    avatarUrl: null,
   },
 ]

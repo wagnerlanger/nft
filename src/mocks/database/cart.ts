@@ -157,6 +157,13 @@ export function removeCartItem(request: Request, nftId: string) {
   return { ok: true as const, cart: toCartResponse(next) }
 }
 
+export function clearCart(request: Request) {
+  const resolved = resolveCartOwner(request)
+  if (!resolved.ok) return resolved
+  writeItems(resolved.owner, [])
+  return { ok: true as const, cart: toCartResponse([]) }
+}
+
 export function mergeGuestCart(request: Request) {
   const session = getSessionByToken(readBearerToken(request))
   if (!session) {

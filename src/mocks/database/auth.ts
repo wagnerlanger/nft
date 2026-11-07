@@ -10,12 +10,32 @@ type SessionRecord = {
   createdAt: string
 }
 
+function normalizeUser(raw: Partial<UserRecord> & Pick<UserRecord, 'id' | 'email' | 'username' | 'displayName' | 'passwordHash'>): UserRecord {
+  return {
+    id: raw.id,
+    email: raw.email,
+    username: raw.username,
+    displayName: raw.displayName,
+    passwordHash: raw.passwordHash,
+    ensName: raw.ensName ?? '',
+    ensSuffix: raw.ensSuffix ?? '.eth',
+    walletNickname: raw.walletNickname ?? '',
+    avatarUrl: raw.avatarUrl ?? null,
+  }
+}
+
 function readUsers(): UserRecord[] {
   try {
     const raw = window.localStorage.getItem(USERS_KEY)
     if (!raw) return structuredClone(seedUsers)
-    const parsed = JSON.parse(raw) as UserRecord[]
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : structuredClone(seedUsers)
+    const parsed = JSON.parse(raw) as Array<Partial<UserRecord>>
+    if (!Array.isArray(parsed) || parsed.length === 0) return structuredClone(seedUsers)
+    return parsed
+      .filter(
+        (item): item is Partial<UserRecord> & Pick<UserRecord, 'id' | 'email' | 'username' | 'displayName' | 'passwordHash'> =>
+          Boolean(item?.id && item.email && item.username && item.displayName && item.passwordHash),
+      )
+      .map(normalizeUser)
   } catch {
     return structuredClone(seedUsers)
   }
@@ -46,7 +66,15 @@ function publicUser(user: UserRecord) {
     email: user.email,
     username: user.username,
     displayName: user.displayName,
+    ensName: user.ensName,
+    ensSuffix: user.ensSuffix,
+    walletNickname: user.walletNickname,
+    avatarUrl: user.avatarUrl,
   }
+}
+
+export function toCollectorProfile(user: UserRecord) {
+  return publicUser(user)
 }
 
 export function resetAuthDatabase() {
@@ -80,6 +108,10 @@ export async function registerUser(input: {
     username,
     displayName: username,
     passwordHash: await sha256(input.password),
+    ensName: '',
+    ensSuffix: '.eth',
+    walletNickname: '',
+    avatarUrl: null,
   }
   users.push(user)
   writeUsers(users)
@@ -124,6 +156,113 @@ export function getSessionByToken(token: string | null) {
   const user = readUsers().find((item) => item.id === session.userId)
   if (!user) return null
   return { token: session.token, user: publicUser(user) }
+}
+
+export function getUserByToken(token: string | null) {
+  if (!token) return null
+  const session = readSessions().find((item) => item.token === token)
+  if (!session) return null
+  return readUsers().find((item) => item.id === session.userId) ?? null
+}
+
+export function updateUserProfile(
+  token: string | null,
+  input: {
+    displayName: string
+    username: string
+    email: string
+    ensName: string
+    ensSuffix: string
+    walletNickname: string
+    avatarUrl: string | null
+  },
+) {
+  const user = getUserByToken(token)
+  if (!user) {
+    return {
+      ok: false as const,
+      response: Response.json(
+        { message: 'Sessão expirada. Entre novamente.', code: 'session_expired' },
+        { status: 401 },
+      ),
+    }
+  }
+
+  const users = readUsers()
+  const email = input.email.trim().toLowerCase()
+  const username = input.username.trim()
+
+  if (users.some((item) => item.id !== user.id && item.email === email)) {
+    return {
+      ok: false as const,
+      response: Response.json(
+        { message: 'Este e-mail já está em uso.', code: 'email_taken' },
+        { status: 409 },
+      ),
+    }
+  }
+
+  if (
+    users.some(
+      (item) => item.id !== user.id && item.username.toLowerCase() === username.toLowerCase(),
+    )
+  ) {
+    return {
+      ok: false as const,
+      response: Response.json(
+        { message: 'Este nome de usuário já está em uso.', code: 'username_taken' },
+        { status: 409 },
+      ),
+    }
+  }
+
+  const next: UserRecord = {
+    ...user,
+    displayName: input.displayName.trim(),
+    username,
+    email,
+    ensName: input.ensName.trim(),
+    ensSuffix: input.ensSuffix.trim(),
+    walletNickname: input.walletNickname.trim(),
+    avatarUrl: input.avatarUrl,
+  }
+
+  writeUsers(users.map((item) => (item.id === user.id ? next : item)))
+  return { ok: true as const, profile: toCollectorProfile(next) }
+}
+
+export async function changeUserPassword(
+  token: string | null,
+  input: { currentPassword: string; newPassword: string },
+) {
+  const user = getUserByToken(token)
+  if (!user) {
+    return {
+      ok: false as const,
+      response: Response.json(
+        { message: 'Sessão expirada. Entre novamente.', code: 'session_expired' },
+        { status: 401 },
+      ),
+    }
+  }
+
+  const currentHash = await sha256(input.currentPassword)
+  if (user.passwordHash !== currentHash) {
+    return {
+      ok: false as const,
+      response: Response.json(
+        { message: 'Senha atual incorreta.', code: 'invalid_password' },
+        { status: 400 },
+      ),
+    }
+  }
+
+  const next: UserRecord = {
+    ...user,
+    passwordHash: await sha256(input.newPassword),
+  }
+  writeUsers(readUsers().map((item) => (item.id === user.id ? next : item)))
+  return { ok: true as const }
 }
 
 export function logoutSession(token: string | null) {

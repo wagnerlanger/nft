@@ -5,6 +5,10 @@ export type AuthUser = {
   email: string
   username: string
   displayName: string
+  ensName?: string
+  ensSuffix?: string
+  walletNickname?: string
+  avatarUrl?: string | null
 }
 
 export type AuthSession = {

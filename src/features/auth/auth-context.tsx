@@ -16,8 +16,11 @@ import {
 } from '@/features/auth/api/auth-api'
 import type { LoginInput, RegisterInput } from '@/features/auth/schemas'
 import type { AuthSession, AuthTab } from '@/features/auth/types'
+import { profileKeys } from '@/features/account/hooks/use-profile'
 import { cartKeys, mergeGuestCart } from '@/features/cart/hooks/use-cart'
 import { favoritesKeys } from '@/features/favorites/hooks/use-favorites'
+import { ordersKeys } from '@/features/orders/hooks/use-orders'
+import { walletsKeys } from '@/features/wallets/hooks/use-wallets'
 import { getStoredSessionToken, setStoredSessionToken } from '@/infrastructure/http/axios'
 import { isHttpError } from '@/infrastructure/http/errors'
 
@@ -113,6 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setHasToken(false)
       queryClient.setQueryData(SESSION_QUERY_KEY, null)
       queryClient.removeQueries({ queryKey: favoritesKeys.all })
+      queryClient.removeQueries({ queryKey: profileKeys.all })
+      queryClient.removeQueries({ queryKey: walletsKeys.all })
+      queryClient.removeQueries({ queryKey: ordersKeys.all })
       void queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY })
       void queryClient.invalidateQueries({ queryKey: cartKeys.all })
     },

@@ -29,10 +29,10 @@ type SocialLink = {
 
 const profileLinks: FooterLink[] = [
   { name: 'Meu perfil', url: '/account', profile: true },
-  { name: 'Minha coleção', url: '/account', profile: true },
-  { name: 'Atividade', url: '/account', profile: true },
+  { name: 'Minha coleção', url: '/account/wallets', profile: true },
+  { name: 'Atividade', url: '/account/activity', profile: true },
   { name: 'Estúdio do criador', url: '/account', profile: true },
-  { name: 'Lista de interesse', url: '/account', profile: true },
+  { name: 'Lista de interesse', url: '/account/wishlist', profile: true },
 ]
 const helpLinks: FooterLink[] = [
   { name: 'Central de ajuda', url: '/' },
@@ -74,10 +74,6 @@ function QuietList({
               >
                 {item.name}
               </button>
-            ) : item.profile ? (
-              <Link to="/account" className="hover:text-accent">
-                {item.name}
-              </Link>
             ) : (
               <Link to={item.url} className="hover:text-accent">
                 {item.name}

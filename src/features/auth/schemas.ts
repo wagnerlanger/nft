@@ -31,6 +31,10 @@ export const authUserSchema = z.object({
   email: z.email(),
   username: z.string(),
   displayName: z.string(),
+  ensName: z.string().optional(),
+  ensSuffix: z.string().optional(),
+  walletNickname: z.string().optional(),
+  avatarUrl: z.string().nullable().optional(),
 })
 
 export const authSessionSchema = z.object({

@@ -13,6 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as AccountIndexRouteImport } from './routes/account.index'
+import { Route as AccountActivityRouteImport } from './routes/account.activity'
+import { Route as AccountDownloadsRouteImport } from './routes/account.downloads'
+import { Route as AccountOffersRouteImport } from './routes/account.offers'
+import { Route as AccountSupportRouteImport } from './routes/account.support'
+import { Route as AccountWalletsRouteImport } from './routes/account.wallets'
+import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
 import { Route as NftsNftIdRouteImport } from './routes/nfts.$nftId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +42,41 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountActivityRoute = AccountActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountDownloadsRoute = AccountDownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountOffersRoute = AccountOffersRouteImport.update({
+  id: '/offers',
+  path: '/offers',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountSupportRoute = AccountSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountWalletsRoute = AccountWalletsRouteImport.update({
+  id: '/wallets',
+  path: '/wallets',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountWishlistRoute = AccountWishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => AccountRoute,
+} as any)
 const NftsNftIdRoute = NftsNftIdRouteImport.update({
   id: '/nfts/$nftId',
   path: '/nfts/$nftId',
@@ -43,37 +85,93 @@ const NftsNftIdRoute = NftsNftIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/account/activity': typeof AccountActivityRoute
+  '/account/downloads': typeof AccountDownloadsRoute
+  '/account/offers': typeof AccountOffersRoute
+  '/account/support': typeof AccountSupportRoute
+  '/account/wallets': typeof AccountWalletsRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/nfts/$nftId': typeof NftsNftIdRoute
+  '/account/': typeof AccountIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/account/activity': typeof AccountActivityRoute
+  '/account/downloads': typeof AccountDownloadsRoute
+  '/account/offers': typeof AccountOffersRoute
+  '/account/support': typeof AccountSupportRoute
+  '/account/wallets': typeof AccountWalletsRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/nfts/$nftId': typeof NftsNftIdRoute
+  '/account': typeof AccountIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/account/activity': typeof AccountActivityRoute
+  '/account/downloads': typeof AccountDownloadsRoute
+  '/account/offers': typeof AccountOffersRoute
+  '/account/support': typeof AccountSupportRoute
+  '/account/wallets': typeof AccountWalletsRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/nfts/$nftId': typeof NftsNftIdRoute
+  '/account/': typeof AccountIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/cart' | '/checkout' | '/nfts/$nftId'
+  fullPaths:
+    | '/'
+    | '/account'
+    | '/cart'
+    | '/checkout'
+    | '/account/activity'
+    | '/account/downloads'
+    | '/account/offers'
+    | '/account/support'
+    | '/account/wallets'
+    | '/account/wishlist'
+    | '/nfts/$nftId'
+    | '/account/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/cart' | '/checkout' | '/nfts/$nftId'
-  id: '__root__' | '/' | '/account' | '/cart' | '/checkout' | '/nfts/$nftId'
+  to:
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/account/activity'
+    | '/account/downloads'
+    | '/account/offers'
+    | '/account/support'
+    | '/account/wallets'
+    | '/account/wishlist'
+    | '/nfts/$nftId'
+    | '/account'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/cart'
+    | '/checkout'
+    | '/account/activity'
+    | '/account/downloads'
+    | '/account/offers'
+    | '/account/support'
+    | '/account/wallets'
+    | '/account/wishlist'
+    | '/nfts/$nftId'
+    | '/account/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountRoute: typeof AccountRoute
+  AccountRoute: typeof AccountRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   NftsNftIdRoute: typeof NftsNftIdRoute
@@ -109,6 +207,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/': {
+      id: '/account/'
+      path: '/'
+      fullPath: '/account/'
+      preLoaderRoute: typeof AccountIndexRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/activity': {
+      id: '/account/activity'
+      path: '/activity'
+      fullPath: '/account/activity'
+      preLoaderRoute: typeof AccountActivityRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/downloads': {
+      id: '/account/downloads'
+      path: '/downloads'
+      fullPath: '/account/downloads'
+      preLoaderRoute: typeof AccountDownloadsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/offers': {
+      id: '/account/offers'
+      path: '/offers'
+      fullPath: '/account/offers'
+      preLoaderRoute: typeof AccountOffersRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/support': {
+      id: '/account/support'
+      path: '/support'
+      fullPath: '/account/support'
+      preLoaderRoute: typeof AccountSupportRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/wallets': {
+      id: '/account/wallets'
+      path: '/wallets'
+      fullPath: '/account/wallets'
+      preLoaderRoute: typeof AccountWalletsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/wishlist': {
+      id: '/account/wishlist'
+      path: '/wishlist'
+      fullPath: '/account/wishlist'
+      preLoaderRoute: typeof AccountWishlistRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/nfts/$nftId': {
       id: '/nfts/$nftId'
       path: '/nfts/$nftId'
@@ -119,9 +266,32 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AccountRouteChildren {
+  AccountActivityRoute: typeof AccountActivityRoute
+  AccountDownloadsRoute: typeof AccountDownloadsRoute
+  AccountOffersRoute: typeof AccountOffersRoute
+  AccountSupportRoute: typeof AccountSupportRoute
+  AccountWalletsRoute: typeof AccountWalletsRoute
+  AccountWishlistRoute: typeof AccountWishlistRoute
+  AccountIndexRoute: typeof AccountIndexRoute
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountActivityRoute: AccountActivityRoute,
+  AccountDownloadsRoute: AccountDownloadsRoute,
+  AccountOffersRoute: AccountOffersRoute,
+  AccountSupportRoute: AccountSupportRoute,
+  AccountWalletsRoute: AccountWalletsRoute,
+  AccountWishlistRoute: AccountWishlistRoute,
+  AccountIndexRoute: AccountIndexRoute,
+}
+
+const AccountRouteWithChildren =
+  AccountRoute._addFileChildren(AccountRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountRoute: AccountRoute,
+  AccountRoute: AccountRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   NftsNftIdRoute: NftsNftIdRoute,

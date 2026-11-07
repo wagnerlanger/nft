@@ -1,9 +1,10 @@
-import { Link } from '@tanstack/react-router'
+import { Outlet } from '@tanstack/react-router'
 
+import { AccountShell } from '@/features/account/components/account-shell'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 
-export function AccountPage() {
-  const { session, isAuthenticated, openAuth } = useAuth()
+export function AccountLayoutPage() {
+  const { isAuthenticated, openAuth } = useAuth()
 
   if (!isAuthenticated) {
     return (
@@ -24,25 +25,8 @@ export function AccountPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1440px] px-4 py-12 md:px-8 xl:px-[120px]">
-      <h1 className="text-3xl font-bold">Perfil do colecionador</h1>
-      <p className="mt-3 max-w-xl text-sm text-secondary">
-        Olá, {session?.user.displayName}. A edição completa do perfil chega na próxima etapa.
-        Por enquanto esta página confirma a sessão autenticada.
-      </p>
-      <dl className="mt-8 max-w-md space-y-3 text-sm">
-        <div className="flex justify-between gap-4 border-b border-border py-2">
-          <dt className="text-secondary">Nome de usuário</dt>
-          <dd className="font-bold">{session?.user.username}</dd>
-        </div>
-        <div className="flex justify-between gap-4 border-b border-border py-2">
-          <dt className="text-secondary">E-mail</dt>
-          <dd className="font-bold">{session?.user.email}</dd>
-        </div>
-      </dl>
-      <Link to="/" className="mt-8 inline-block text-accent hover:text-primary">
-        Voltar ao início
-      </Link>
-    </main>
+    <AccountShell>
+      <Outlet />
+    </AccountShell>
   )
 }
