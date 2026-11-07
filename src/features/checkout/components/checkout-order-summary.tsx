@@ -125,8 +125,7 @@ export function CheckoutOrderSummary({
           {submitError}
         </p>
       ) : null}
-
-      <SubmitButton loading={submitting} className="mt-6 w-full tracking-wide">
+      <SubmitButton loading={submitting} className="mt-6 w-full tracking-wide rounded-full md:rounded-md py-8 md:py-0">
         Confirmar compra
       </SubmitButton>
     </aside>

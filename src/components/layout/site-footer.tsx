@@ -200,7 +200,7 @@ export function SiteFooter() {
       viewport={{ once: true, amount: 0.15 }}
     >
       <section className="grid gap-6 rounded-md bg-card p-8 sm:grid-cols-2 lg:grid-cols-4">
-        <article className="flex flex-col gap-4 border-border border-r pr-6">
+        <article className="flex flex-col gap-4 border-border lg:border-r pr-6">
           <Mark>
             <ImageIcon className="size-6" />
           </Mark>
@@ -211,7 +211,7 @@ export function SiteFooter() {
             </p>
           </div>
         </article>
-        <article className="flex flex-col gap-4 border-border border-r pr-6">
+        <article className="flex flex-col gap-4  border-t pt-6 sm:pt-0 sm:border-t-0 border-border lg:border-r lg:pr-6">
           <Mark>
             <UserIcon className="size-6" />
           </Mark>
@@ -222,7 +222,7 @@ export function SiteFooter() {
             </p>
           </div>
         </article>
-        <article className="flex flex-col gap-4 border-border border-r pr-6">
+        <article className="flex flex-col gap-4 border-t pt-6 lg:pt-0 lg:border-t-0 border-border lg:border-r pr-6">
           <Mark>
             <MessageIcon className="size-6" />
           </Mark>

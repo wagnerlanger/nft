@@ -255,6 +255,15 @@ export function UserIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function UserSolidIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" {...props}>
+      <path d="M10.0001 9.82977C12.2659 9.82977 14.1026 8.00236 14.1026 5.74814C14.1026 3.49391 12.2659 1.6665 10.0001 1.6665C7.73429 1.6665 5.89751 3.49391 5.89751 5.74814C5.89751 8.00236 7.73429 9.82977 10.0001 9.82977Z" />
+      <path d="M12.1368 11.5305H7.86332C5.38469 11.5305 3.3334 13.5713 3.3334 16.0373C3.3334 16.6326 3.58981 17.1428 4.10264 17.3979C4.87187 17.823 6.58127 18.3332 10.0001 18.3332C13.4189 18.3332 15.1283 17.823 15.8975 17.3979C16.3249 17.1428 16.6667 16.6326 16.6667 16.0373C16.6667 13.4863 14.6155 11.5305 12.1368 11.5305Z" />
+    </svg>
+  )
+}
+
 export function LocationIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg aria-hidden="true" fill="none" viewBox="0 0 20 20" {...props}>
@@ -440,25 +449,55 @@ export function ShopIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function ShopSolidIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" {...props}>
+      <path d="M18.3333 6.80118L17.3897 12.7776C17.2181 13.9561 16.2745 14.7136 15.0735 14.7136H6.83825C5.72305 14.7136 4.69364 13.8719 4.52207 12.7776L3.49266 5.79108L3.2353 3.85506C3.14952 3.35001 2.7206 3.01331 2.12011 3.01331H1.51962C1.17648 3.01331 0.833344 2.6766 0.833344 2.3399C0.833344 2.0032 1.17648 1.6665 1.51962 1.6665H2.12011C3.32109 1.6665 4.3505 2.50825 4.43628 3.68671L4.60785 5.03351H16.7892C17.2181 5.03351 17.6471 5.20186 17.9044 5.53856C18.2476 5.87526 18.3333 6.38031 18.3333 6.80118Z" />
+      <path d="M15.2451 18.3332C15.7189 18.3332 16.103 17.9563 16.103 17.4914C16.103 17.0265 15.7189 16.6497 15.2451 16.6497C14.7713 16.6497 14.3873 17.0265 14.3873 17.4914C14.3873 17.9563 14.7713 18.3332 15.2451 18.3332Z" />
+      <path d="M6.66668 18.3332C7.14045 18.3332 7.52452 17.9563 7.52452 17.4914C7.52452 17.0265 7.14045 16.6497 6.66668 16.6497C6.1929 16.6497 5.80883 17.0265 5.80883 17.4914C5.80883 17.9563 6.1929 18.3332 6.66668 18.3332Z" />
+    </svg>
+  )
+}
+
+export function MenuIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg aria-hidden="true" fill="none" viewBox="0 0 22 22" {...props}>
+      <path d="M4 6.5h14" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
+      <path d="M4 11h14" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
+      <path d="M4 15.5h14" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
+    </svg>
+  )
+}
+
 export function FilterIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg aria-hidden="true" fill="none" viewBox="0 0 22 22" {...props}>
       <path
-        d="M4.5 6.5h5M12.5 6.5h5"
+        d="M10.215 16.3925H4.28186"
         stroke="currentColor"
         strokeLinecap="round"
+        strokeLinejoin="round"
         strokeWidth="1.5"
       />
       <path
-        d="M11 8.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM4.5 15.5h5M12.5 15.5h5"
+        d="M13.9379 16.3934C13.9379 18.2651 14.562 18.8884 16.4328 18.8884C18.3037 18.8884 18.9278 18.2651 18.9278 16.3934C18.9278 14.5218 18.3037 13.8984 16.4328 13.8984C14.562 13.8984 13.9379 14.5218 13.9379 16.3934Z"
         stroke="currentColor"
         strokeLinecap="round"
+        strokeLinejoin="round"
         strokeWidth="1.5"
       />
       <path
-        d="M11 17.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
+        d="M12.9952 6.77776H18.9275"
         stroke="currentColor"
         strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M9.27232 6.77671C9.27232 4.90589 8.64817 4.28174 6.77735 4.28174C4.90571 4.28174 4.28156 4.90589 4.28156 6.77671C4.28156 8.64835 4.90571 9.27169 6.77735 9.27169C8.64817 9.27169 9.27232 8.64835 9.27232 6.77671Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         strokeWidth="1.5"
       />
     </svg>

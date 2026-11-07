@@ -5,26 +5,29 @@ import { SiteHeader } from '@/components/layout/site-header'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthModal } from '@/features/auth/components/auth-modal'
 import { AuthProvider } from '@/features/auth/auth-context'
+import { CatalogFiltersUiProvider } from '@/features/catalog/catalog-filters-ui-context'
 
 export function MainLayout() {
   return (
     <AuthProvider>
-      <TooltipProvider>
-        <div className="min-h-screen bg-background text-foreground">
-          <a
-            href="#content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:px-3 focus:py-2 focus:text-ink"
-          >
-            Ir para o conteúdo
-          </a>
-          <SiteHeader />
-          <div id="content">
-            <Outlet />
+      <CatalogFiltersUiProvider>
+        <TooltipProvider>
+          <div className="min-h-screen bg-background text-foreground pb-[100px] md:pb-0">
+            <a
+              href="#content"
+              className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:px-3 focus:py-2 focus:text-ink"
+            >
+              Ir para o conteúdo
+            </a>
+            <SiteHeader />
+            <div id="content">
+              <Outlet />
+            </div>
+            <SiteFooter />
+            <AuthModal />
           </div>
-          <SiteFooter />
-          <AuthModal />
-        </div>
-      </TooltipProvider>
+        </TooltipProvider>
+      </CatalogFiltersUiProvider>
     </AuthProvider>
   )
 }

@@ -33,12 +33,16 @@
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --animate-shimmer: shimmer 1.4s linear infinite;
+  --background-image-primary-fade: linear-gradient(to bottom,
+      color-mix(in srgb, var(--primary) 20%, transparent) 0%,
+      color-mix(in srgb, var(--primary) 10%, transparent) 100%);
 }
 
 @keyframes shimmer {
   from {
     background-position: 200% 0;
   }
+
   to {
     background-position: -200% 0;
   }
@@ -76,4 +80,45 @@
       scroll-behavior: auto;
     }
   }
+}
+
+.bottom-bar {
+  height: 95px;
+  display: flex;
+  color: var(--card);
+  filter: drop-shadow(0 -10px 15px rgba(10, 6, 4, 0.45));
+}
+
+.lado {
+  flex: 1;
+  background: var(--card);
+}
+
+.esquerdo {
+  border-top-left-radius: 28.93px;
+}
+
+.direito {
+  border-top-right-radius: 28.93px;
+}
+
+.recorte {
+  flex: none;
+  width: 151.7px;
+  height: 95px;
+  margin: 0 -0.5px;
+}
+
+.fab {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -30%);
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: #e8a33d;
+  color: var(--card);
+  font-size: 28px;
 }

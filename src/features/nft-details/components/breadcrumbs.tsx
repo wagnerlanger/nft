@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router'
 
 export function NftBreadcrumbs() {
+
   return (
-    <nav aria-label="Breadcrumb" className="text-sm text-foreground-soft">
+    <nav aria-label="Breadcrumb" className="text-sm text-foreground-soft hidden md:block">
       <ol className="flex flex-wrap items-center gap-2">
         <li>
           <Link to="/" className="hover:text-primary">

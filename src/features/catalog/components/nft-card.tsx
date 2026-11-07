@@ -48,7 +48,7 @@ export function NftCard({ nft }: { nft: Nft }) {
   }
 
   return (
-    <Reveal direction="up">
+    <Reveal direction="up" className="even:pt-8 md:even:pt-0">
       <article>
         <Link
           to="/nfts/$nftId"
@@ -56,7 +56,7 @@ export function NftCard({ nft }: { nft: Nft }) {
           className="group block"
           aria-label={`${label}, ${formatEth(nft.priceEth)}`}
         >
-          <div className="relative flex aspect-[258/300] items-center justify-center bg-card p-1 transition-all duration-300 ease-out border-t border-transparent group-hover:border-primary">
+          <div className="relative flex aspect-[258/300] rounded-3xl md:rounded-none items-center justify-center bg-card p-1 transition-all duration-300 ease-out border-t border-transparent group-hover:border-primary">
             <img
               ref={imageRef}
               src={nft.imageUrl}
@@ -68,14 +68,14 @@ export function NftCard({ nft }: { nft: Nft }) {
                 RARO
               </span>
             ) : null}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center opacity-0 transition-all duration-300 group-hover:bottom-5 group-hover:pointer-events-auto group-hover:opacity-100">
+            <div className="pointer-events-auto md:pointer-events-none absolute inset-x-0 top-7 pr-3 md:pr-0 md:top-auto md:bottom-0 flex justify-end md:justify-center md:opacity-0 transition-all duration-300 md:group-hover:bottom-5 group-hover:pointer-events-auto group-hover:opacity-100">
               <div className="flex gap-[10px]">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="dark"
                       size="sm"
-                      className="px-2"
+                      className="px-2 hidden md:block "
                       aria-label="Adicionar ao Carrinho"
                       onClick={handleAddToCart}
                     >
@@ -89,7 +89,7 @@ export function NftCard({ nft }: { nft: Nft }) {
                     <Button
                       variant="dark"
                       size="sm"
-                      className={cn('px-2', isFavorite && 'text-primary hover:text-primary')}
+                      className={cn('px-2 rounded-full md:rounded-md', isFavorite && 'text-primary hover:text-primary')}
                       aria-label="Favoritar"
                       aria-pressed={isFavorite}
                       onClick={handleFavorite}
@@ -108,7 +108,7 @@ export function NftCard({ nft }: { nft: Nft }) {
                     <Button
                       variant="dark"
                       size="sm"
-                      className="px-2"
+                      className="px-2 hidden md:block "
                       aria-label="Ver detalhes"
                       onClick={handleDetails}
                     >

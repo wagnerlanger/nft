@@ -7,6 +7,7 @@ import { fromCents, toCents } from '@/shared/formatters/money'
 import type { CatalogSearch } from '@/shared/utils/catalog-search'
 import { parseCategoryList, parseChainList, toggleCsv } from '@/shared/utils/catalog-search'
 import { cn } from '@/shared/utils/cn'
+import { useCatalogFiltersUi } from '../catalog-filters-ui-context'
 
 interface CatalogFiltersProps {
   idPrefix: string
@@ -23,6 +24,7 @@ export function CatalogFilters({ idPrefix, search, facets, onSearchChange }: Cat
   const priceKey = `${urlMin}|${urlMax}`
   const [range, setRange] = useState([toCents(urlMin), toCents(urlMax)])
   const [syncedPrice, setSyncedPrice] = useState(priceKey)
+  const { filtersOpen, setFiltersOpen } = useCatalogFiltersUi()
 
   if (priceKey !== syncedPrice) {
     setSyncedPrice(priceKey)
@@ -83,12 +85,14 @@ export function CatalogFilters({ idPrefix, search, facets, onSearchChange }: Cat
           <Button
             className="mt-4"
             size="sm"
-            onClick={() =>
+            onClick={() =>{
+              setFiltersOpen(false)
               onSearchChange({
                 minPrice: minLabel === facets.price.min ? undefined : minLabel,
                 maxPrice: maxLabel === facets.price.max ? undefined : maxLabel,
                 page: undefined,
               })
+            }
             }
           >
             Aplicar

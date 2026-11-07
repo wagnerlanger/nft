@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -10,10 +10,13 @@ import {
 } from '@/features/cart/utils/totals'
 import type { CartItem } from '@/features/cart/types'
 import { formatEth } from '@/shared/formatters/eth'
+import { useAuth } from '@/features/auth/auth-context'
 
 export function CartSummary({ items }: { items: CartItem[] }) {
+  const navigate = useNavigate()
   const [promoCode, setPromoCode] = useState('')
   const subtotal = sumSubtotalEth(items)
+  const { isAuthenticated, session, openAuth } = useAuth()
   const discount = '00.00'
   const total = cartGrandTotalEth(subtotal, discount, NETWORK_FEE_ETH)
 
@@ -32,9 +35,9 @@ export function CartSummary({ items }: { items: CartItem[] }) {
             value={promoCode}
             onChange={(event) => setPromoCode(event.target.value)}
             placeholder="Digite o código..."
-            className="flex-1 rounded-r-none"
+            className="h-14 md:h-10flex-1 rounded-r-none rounded-l-full md:rounded-md"
           />
-          <Button type="button" size="sm" className="shrink-0 h-10 px-4 rounded-l-none">
+          <Button type="button" size="sm" className="shrink-0 h-14 md:h-10 px-4 rounded-full rounded-l-none">
             Aplicar
           </Button>
         </div>
@@ -64,8 +67,8 @@ export function CartSummary({ items }: { items: CartItem[] }) {
         </div>
       </dl>
 
-      <Button asChild className="mt-6 w-full tracking-wide">
-        <Link to="/checkout">Conectar e finalizar</Link>
+      <Button onClick={() => (isAuthenticated && session) ? navigate({ to: '/checkout' }) : openAuth('login')} className="mt-6 w-full tracking-wide rounded-full md:rounded-md py-8 md:py-0">
+        Conectar e finalizar
       </Button>
 
       <Link

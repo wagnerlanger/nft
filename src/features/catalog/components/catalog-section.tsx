@@ -1,6 +1,3 @@
-import { useState } from 'react'
-
-import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { CatalogFilters } from '@/features/catalog/components/catalog-filters'
 import { CatalogPagination } from '@/features/catalog/components/catalog-pagination'
@@ -13,10 +10,13 @@ import {
 import { CatalogToolbar } from '@/features/catalog/components/catalog-toolbar'
 import { FeaturedBanner } from '@/features/catalog/components/featured-banner'
 import { NftCard } from '@/features/catalog/components/nft-card'
+import { useCatalogFiltersUi } from '@/features/catalog/catalog-filters-ui-context'
 import type { useNftList } from '@/features/catalog/hooks/use-nfts'
 import type { CatalogTabId, SortId } from '@/shared/constants/catalog'
 import { Reveal } from '@/shared/motion/reveal'
 import type { CatalogSearch } from '@/shared/utils/catalog-search'
+import { Button } from '@/components/ui/button'
+import { CloseIcon } from '@/components/icons'
 
 type ListQuery = ReturnType<typeof useNftList>
 
@@ -27,14 +27,14 @@ interface CatalogSectionProps {
 }
 
 export function CatalogSection({ search, query, onSearchChange }: CatalogSectionProps) {
-  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { filtersOpen, setFiltersOpen } = useCatalogFiltersUi()
   const tab = search.tab ?? 'all'
   const sort = search.sort ?? 'recent'
   const page = search.page ?? 1
   const data = query.data
 
   return (
-    <section id="catalogo" className="scroll-mt-6 pt-16" aria-busy={query.isFetching}>
+    <section id="catalogo" className="scroll-mt-6 pt-10 md:pt-16" aria-busy={query.isFetching}>
       <h2 className="sr-only">Catálogo de NFTs</h2>
       <div className="lg:grid lg:grid-cols-[310px_minmax(0,1fr)] lg:gap-12">
         <aside className="hidden lg:flex flex-col gap-6">
@@ -58,32 +58,29 @@ export function CatalogSection({ search, query, onSearchChange }: CatalogSection
         </aside>
 
         <div>
-          <div className="mb-4 flex items-center justify-between lg:hidden">
-            <Button variant="outline" onClick={() => setFiltersOpen(true)}>
-              Filtros
-            </Button>
+          <div className="flex justify-between">
+            <CatalogToolbar
+              tab={tab}
+              sort={sort}
+              onTabChange={(nextTab) =>
+                onSearchChange({
+                  tab: nextTab === 'all' ? undefined : (nextTab as CatalogTabId),
+                  page: undefined,
+                })
+              }
+              onSortChange={(nextSort) =>
+                onSearchChange({
+                  sort: nextSort === 'recent' ? undefined : (nextSort as SortId),
+                  page: undefined,
+                })
+              }
+            />
+            <div className="mb-4 hidden md:block lg:hidden">
+              <Button variant="outline" onClick={() => setFiltersOpen(true)}>
+                Filtros
+              </Button>
+            </div>
           </div>
-          {data?.highlight ? (
-            <Reveal direction="left" className="mb-8 lg:hidden">
-              <FeaturedBanner nftId={data.highlight.id} />
-            </Reveal>
-          ) : null}
-          <CatalogToolbar
-            tab={tab}
-            sort={sort}
-            onTabChange={(nextTab) =>
-              onSearchChange({
-                tab: nextTab === 'all' ? undefined : (nextTab as CatalogTabId),
-                page: undefined,
-              })
-            }
-            onSortChange={(nextSort) =>
-              onSearchChange({
-                sort: nextSort === 'recent' ? undefined : (nextSort as SortId),
-                page: undefined,
-              })
-            }
-          />
 
           <div className="mt-8">
             {query.isPending ? <GridSkeleton /> : null}
@@ -127,8 +124,15 @@ export function CatalogSection({ search, query, onSearchChange }: CatalogSection
       </div>
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-        <SheetContent aria-describedby={undefined}>
-          <SheetTitle className="text-lg font-bold">Filtros</SheetTitle>
+        <SheetContent aria-describedby={undefined} className="z-[100] w-full max-w-[calc(100%-4rem)]">
+          <SheetTitle className="text-lg font-bold">
+            <div className="flex justify-between">
+              <h2 className="text-lg font-bold">Filtros</h2>
+              <Button size="sm" variant="ghost" className="-mt-2 hidden md:block" onClick={() => setFiltersOpen(false)}>
+                <CloseIcon className="size-5" />
+              </Button>
+            </div>
+          </SheetTitle>
           {data ? (
             <div className="mt-6">
               <CatalogFilters

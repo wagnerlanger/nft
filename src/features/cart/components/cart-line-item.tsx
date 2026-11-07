@@ -100,7 +100,7 @@ export function CartLineItem({
           <p className="text-lg font-bold tabular-nums text-accent">{formatEth(item.unitPriceEth)}</p>
         </div>
 
-        <div className="flex shrink-0 flex-col items-center justify-center gap-1">
+        <div className="flex shrink-0 items-center justify-center gap-1">
           <button
             type="button"
             className="grid size-8 place-items-center rounded-full border border-border-soft text-lg text-foreground-soft disabled:opacity-40"

@@ -34,8 +34,8 @@ export function NftGallery({
 
   return (
     <>
-      <div className="flex flex-col md:flex-row lg:flex-1 gap-8 sticky top-18">
-        <div className="order-1 md:order-0 h-[72px] w-full md:h-auto md:w-[72px] relative shrink-0 md:w-[88px]">
+      <div className="flex flex-col md:flex-row gap-8 md:sticky top-18">
+        <div className="hidden md:block order-1 md:order-0 h-[72px] w-full md:h-auto md:w-[72px] relative shrink-0 md:w-[88px]">
           <ul className="absolute top-0 left-0 right-0 bottom-0 flex md:flex-col gap-3 h-full overflow-x-auto md:overflow-y-auto">
             {images.map((image, index) => (
               <li key={image.key}>
@@ -62,7 +62,7 @@ export function NftGallery({
           <button
             type="button"
             onClick={() => openViewer(activeIndex)}
-            className="group cursor-pointer relative aspect-square w-full overflow-hidden rounded-lg bg-card p-4"
+            className="group cursor-pointer relative aspect-square w-full overflow-hidden rounded-lg bg-card md:p-4"
             aria-label={`Ampliar ${alt}`}
           >
             <img
@@ -82,7 +82,7 @@ export function NftGallery({
               <button
                 type="button"
                 onClick={() => openViewer(activeIndex)}
-                className="absolute cursor-pointer rounded-full right-2 top-2 grid size-9 place-items-center bg-card border border-border text-foreground-soft transition-colors hover:text-primary"
+                className="hidden md-block absolute cursor-pointer rounded-full right-2 top-2 grid size-9 place-items-center bg-card border border-border text-foreground-soft transition-colors hover:text-primary"
                 aria-label="Ampliar"
               >
                 <SearchIcon className="size-5" />

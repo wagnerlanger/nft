@@ -20,6 +20,9 @@ import type { Order } from '@/features/orders/types'
 import { useWalletsQuery } from '@/features/wallets/hooks/use-wallets'
 import { isHttpError } from '@/infrastructure/http/errors'
 import { zodFieldErrors } from '@/shared/utils/form-errors'
+import { CartBreadcrumbs } from '../cart/components/cart-breadcrumbs'
+import { ChevronRightIcon } from '@/components/icons'
+import { useHandleBack } from '../account/hooks/use-handle-back'
 
 type FieldErrors = Partial<Record<(typeof checkoutWalletFormFields)[number], string>>
 
@@ -44,6 +47,7 @@ function emptyFormValues(prefill?: { displayName?: string; email?: string }): Ch
 export function CheckoutPage() {
   const { session, isAuthenticated, openAuth } = useAuth()
   const cartQuery = useCart()
+  const handleBack = useHandleBack()
   const walletsQuery = useWalletsQuery()
   const createOrder = useCreateOrder()
   const items = cartQuery.data?.items ?? []
@@ -90,18 +94,33 @@ export function CheckoutPage() {
 
   if (!isAuthenticated) {
     return (
-      <main className="mx-auto max-w-xl px-4 py-24 text-center">
-        <h1 className="text-3xl font-bold">Pagamento</h1>
-        <p className="mt-3 text-sm text-secondary">
-          Entre na sua conta para confirmar a compra e conectar sua carteira.
-        </p>
-        <button
-          type="button"
-          className="mt-6 inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-bold text-ink"
-          onClick={() => openAuth('login')}
-        >
-          Entrar
-        </button>
+      <main className="mx-auto w-full max-w-[1440px] px-4 pb-8 md:px-8 md:py-10 xl:px-[120px] md:bg-transparent">
+        <div className="flex items-center md:hidden sticky top-0 bg-background z-10 -mx-4 px-4 pt-8 pb-2 gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleBack()}
+            className="border-border rounded-full px-2 text-muted bg-card"
+          >
+            <ChevronRightIcon className="size-5 -scale-x-100" />
+          </Button>
+          <h2 className="text-lg font-bold text-foreground flex-1 text-center pr-12">
+            Pagamento
+          </h2>
+
+        </div>
+        <div className="py-24 text-center">
+          <p className="mt-3 text-sm text-secondary">
+            Entre na sua conta para confirmar a compra e conectar sua carteira.
+          </p>
+          <button
+            type="button"
+            className="mt-6 inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-bold text-ink"
+            onClick={() => openAuth('login')}
+          >
+            Entrar
+          </button>
+        </div>
       </main>
     )
   }
@@ -175,8 +194,23 @@ export function CheckoutPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-8 md:py-10 xl:px-[120px]">
-      <CheckoutBreadcrumbs />
+    <main className="mx-auto w-full max-w-[1440px] px-4 pb-8 md:px-8 md:py-10 xl:px-[120px] md:bg-transparent">
+      <div className="hidden md:block">
+        <CheckoutBreadcrumbs />
+      </div>
+
+      <div className="flex items-center md:hidden sticky top-0 bg-background z-10 -mx-4 px-4 pt-8 pb-2 gap-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleBack()}
+          className="border-border rounded-full px-2 text-muted bg-card"
+        >
+          <ChevronRightIcon className="size-5 -scale-x-100" />
+        </Button>
+        <h2 className="text-lg font-bold text-foreground flex-1 text-center pr-12">Checkout</h2>
+
+      </div>
 
       {cartQuery.isPending ? (
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]" aria-busy="true">

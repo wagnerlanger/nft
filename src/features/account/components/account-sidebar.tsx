@@ -43,58 +43,78 @@ function isActivePath(pathname: string, to: NavItem['to'], exact?: boolean) {
   return pathname === to || pathname.startsWith(`${to}/`)
 }
 
-export function AccountSidebar() {
+export function AccountSidebar({
+  onlyMenu = false,
+  onNavigate,
+}: {
+  onlyMenu?: boolean
+  onNavigate?: () => void
+}) {
   const pathname = useRouterState({ select: (state) => state.location.pathname })
   const navigate = useNavigate()
   const { logout } = useAuth()
 
   async function handleLogout() {
+    onNavigate?.()
     await logout()
     void navigate({ to: '/' })
   }
 
-  return (
-    <aside className="bg-card pt-4 min-w-[240px] lg:min-w-[310px]">
-      <h2 className="pl-2 text-sm font-bold tracking-wide text-foreground">Meu perfil</h2>
-      <nav aria-label="Menu do perfil" className="mt-4 space-y-0.5">
-        {navItems.map((item) => {
-          const active = isActivePath(pathname, item.to, item.exact)
-          const Icon = item.icon
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={cn(
-                'relative flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition-colors text-primary',
-                active
-                  ? 'font-bold'
-                  : 'hover:text-foreground',
-              )}
-              aria-current={active ? 'page' : undefined}
-            >
-              {active ? (
-                <span
-                  aria-hidden
-                  className="absolute top-0 bottom-0 left-0 w-1 bg-primary"
-                />
-              ) : null}
-              <Icon className={cn("size-4 shrink-0 text-muted", active ? 'text-primary' : '')} />
-              <span>{item.label}</span>
-            </Link>
-          )
-        })}
-        <div className="border-t border-border">
-          <button
-            type="button"
-            onClick={() => void handleLogout()}
-            className="cursor-pointer relative flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-primary transition-colors hover:text-foreground"
+  const menuItens = (
+    <nav aria-label="Menu do perfil" className={cn("space-y-0.5", onlyMenu ? '' : 'mt-4')}>
+      {navItems.map((item) => {
+        const active = isActivePath(pathname, item.to, item.exact)
+        const Icon = item.icon
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            onClick={() => onNavigate?.()}
+            className={cn(
+              'relative flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition-colors text-primary',
+              active
+                ? 'font-bold'
+                : 'hover:text-foreground',
+            )}
+            aria-current={active ? 'page' : undefined}
           >
-            <LogoutIcon className="size-4 shrink-0 text-muted" />
-            <span>Sair</span>
-          </button>
-        </div>
+            {active ? (
+              <span
+                aria-hidden
+                className="absolute top-0 bottom-0 left-0 w-1 bg-primary"
+              />
+            ) : null}
+            <Icon className={cn("size-4 shrink-0 text-muted", active ? 'text-primary' : '')} />
+            <span>{item.label}</span>
+          </Link>
+        )
+      })}
+      <div className="border-t border-border">
+        <button
+          type="button"
+          onClick={() => void handleLogout()}
+          className="cursor-pointer relative flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-primary transition-colors hover:text-foreground"
+        >
+          <LogoutIcon className="size-4 shrink-0 text-muted" />
+          <span>Sair</span>
+        </button>
+      </div>
 
-      </nav>
+    </nav>
+  )
+
+  if (onlyMenu) {
+    return (
+      <aside className="bg-card">
+        {menuItens}
+      </aside>
+    )
+  }
+
+  return (
+    <aside className="bg-card pt-4 min-w-[240px] lg:min-w-[310px] hidden md:block">
+      <h2 className="pl-2 text-sm font-bold tracking-wide text-foreground">Meu perfil</h2>
+      {menuItens}
     </aside>
   )
 }
