@@ -8,6 +8,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel'
+import { revealItemVariants } from '@/shared/motion/variants'
 import { cn } from '@/shared/utils/cn'
 
 const AUTOPLAY_INTERVAL_MS = 6000
@@ -146,10 +147,14 @@ export function HeroBanner() {
     }
   const herContainerClass = "mx-auto w-full max-w-[1440px] px-4 pb-8 md:px-8 xl:px-[120px]";
   const heroRowClass = 'flex w-full min-h-[320px] items-center gap-8 py-6 pl-6 pr-4 lg:pl-10';
+  const bannerRevealVariants = revealItemVariants('up', prefersReducedMotion)
 
   return (
-    <section
+    <motion.section
       className="relative"
+      variants={bannerRevealVariants}
+      initial="hidden"
+      animate="visible"
       onPointerEnter={() => setPointerInside(true)}
       onPointerLeave={() => setPointerInside(false)}
       onFocusCapture={() => setFocusInside(true)}
@@ -270,6 +275,6 @@ export function HeroBanner() {
           <div className="ml-auto w-full max-w-[450px] shrink-0"></div>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }

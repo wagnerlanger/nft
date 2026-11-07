@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { motion, useReducedMotion } from 'motion/react'
 import { useState, type FormEvent, type SVGProps } from 'react'
 
 import { BrandLogo } from '@/components/brand-logo'
@@ -17,6 +18,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { newsletterEmailSchema } from '@/features/auth/schemas'
 import { CATEGORIES } from '@/shared/constants/catalog'
+import { revealItemVariants } from '@/shared/motion/variants'
 
 type FooterLink = { name: string; url: string; profile?: boolean }
 type SocialLink = {
@@ -190,9 +192,17 @@ function NewsletterBlock() {
 
 export function SiteFooter() {
   const { isAuthenticated, openAuth } = useAuth()
+  const prefersReducedMotion = useReducedMotion()
+  const footerVariants = revealItemVariants('up', prefersReducedMotion)
 
   return (
-    <footer className="mx-auto mt-24 w-full max-w-[1440px] px-4 pb-8 md:px-8 xl:px-[120px]">
+    <motion.footer
+      className="mx-auto mt-24 w-full max-w-[1440px] px-4 pb-8 md:px-8 xl:px-[120px]"
+      variants={footerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.15 }}
+    >
       <section className="grid gap-6 rounded-md bg-card p-8 sm:grid-cols-2 lg:grid-cols-4">
         <article className="flex flex-col gap-4 border-border border-r pr-6">
           <Mark>
@@ -304,6 +314,6 @@ export function SiteFooter() {
         </div>
       </div>
       <p className="mt-6 text-center text-sm text-secondary">© 2026 Kurio. Propriedade digital para todos.</p>
-    </footer>
+    </motion.footer>
   )
 }

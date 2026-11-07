@@ -3,6 +3,9 @@ import axios from 'axios'
 import { HttpError } from '@/infrastructure/http/errors'
 
 const SCENARIO_HEADER = 'x-kurio-scenario'
+const GUEST_HEADER = 'x-guest-id'
+const SESSION_TOKEN_KEY = 'kurio:session-token'
+const GUEST_ID_KEY = 'kurio:guest-id'
 
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
@@ -10,8 +13,6 @@ export const http = axios.create({
     Accept: 'application/json',
   },
 })
-
-const SESSION_TOKEN_KEY = 'kurio:session-token'
 
 export function getStoredSessionToken() {
   return window.localStorage.getItem(SESSION_TOKEN_KEY)
@@ -25,6 +26,14 @@ export function setStoredSessionToken(token: string | null) {
   window.localStorage.setItem(SESSION_TOKEN_KEY, token)
 }
 
+export function getOrCreateGuestId() {
+  const existing = window.localStorage.getItem(GUEST_ID_KEY)
+  if (existing) return existing
+  const guestId = crypto.randomUUID()
+  window.localStorage.setItem(GUEST_ID_KEY, guestId)
+  return guestId
+}
+
 http.interceptors.request.use((config) => {
   const scenario = window.localStorage.getItem('kurio:scenario')
   if (scenario && scenario !== 'success') {
@@ -34,6 +43,7 @@ http.interceptors.request.use((config) => {
   if (token) {
     config.headers.set('Authorization', `Bearer ${token}`)
   }
+  config.headers.set(GUEST_HEADER, getOrCreateGuestId())
   return config
 })
 

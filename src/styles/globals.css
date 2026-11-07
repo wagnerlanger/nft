@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 @import './tokens.css';
+@import 'react-photo-view/dist/react-photo-view.css';
+
+.PhotoView-Slider__Backdrop {
+  background: rgb(0 0 0 / 70%) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
 
 @theme inline {
   --font-sans: 'Roboto Mono', ui-monospace, SFMono-Regular, monospace;

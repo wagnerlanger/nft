@@ -1,5 +1,10 @@
 import type { CatalogTabId, ChainId, CategoryId, SortId } from '@/shared/constants/catalog'
 
+export interface NftDetailBlock {
+  title?: string
+  body: string
+}
+
 export interface Nft {
   id: string
   name: string
@@ -15,6 +20,9 @@ export interface Nft {
   trendingScore: number
   limitedOffer: boolean
   isRare: boolean
+  shortDescription: string
+  details: NftDetailBlock[]
+  attributes: string[]
 }
 
 export interface CatalogFacet {

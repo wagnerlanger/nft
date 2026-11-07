@@ -19,7 +19,7 @@ export function AuthModal() {
         if (!open) closeAuth()
       }}
     >
-      <DialogContent className="pt-8 pb-7">
+      <DialogContent className="md:p-14">
         <div className="mb-6 text-center">
           <div className="flex items-center justify-center gap-3 text-lg font-bold">
             <button

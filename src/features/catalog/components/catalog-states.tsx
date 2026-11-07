@@ -1,20 +1,23 @@
 import { Button } from '@/components/ui/button'
 import { NftCardSkeleton } from '@/features/catalog/components/nft-card'
+import { Reveal } from '@/shared/motion/reveal'
 
 export function FilterSkeleton() {
   return (
-    <div className="space-y-6" aria-hidden="true">
-      <div className="h-5 w-32 bg-card" />
-      {Array.from({ length: 6 }, (_, index) => (
-        <div key={index} className="h-4 w-full bg-card" />
-      ))}
-    </div>
+    <Reveal direction="left">
+      <div className="space-y-6" aria-hidden="true">
+        <div className="h-5 w-32 bg-card" />
+        {Array.from({ length: 6 }, (_, index) => (
+          <div key={index} className="h-4 w-full bg-card" />
+        ))}
+      </div>
+    </Reveal>
   )
 }
 
 export function GridSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-3 lg:gap-x-[34px] lg:gap-y-[72px]" aria-hidden="true">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:gap-x-[34px] lg:gap-y-[72px]" aria-hidden="true">
       {Array.from({ length: 9 }, (_, index) => (
         <NftCardSkeleton key={index} />
       ))}

@@ -26,6 +26,14 @@ export const nftSchema = z.object({
   trendingScore: z.number(),
   limitedOffer: z.boolean(),
   isRare: z.boolean(),
+  shortDescription: z.string(),
+  details: z.array(
+    z.object({
+      title: z.string().optional(),
+      body: z.string(),
+    }),
+  ),
+  attributes: z.array(z.string()),
 })
 
 export const facetSchema = z.object({

@@ -15,6 +15,7 @@ import { FeaturedBanner } from '@/features/catalog/components/featured-banner'
 import { NftCard } from '@/features/catalog/components/nft-card'
 import type { useNftList } from '@/features/catalog/hooks/use-nfts'
 import type { CatalogTabId, SortId } from '@/shared/constants/catalog'
+import { Reveal } from '@/shared/motion/reveal'
 import type { CatalogSearch } from '@/shared/utils/catalog-search'
 
 type ListQuery = ReturnType<typeof useNftList>
@@ -45,7 +46,11 @@ export function CatalogSection({ search, query, onSearchChange }: CatalogSection
                 facets={data.facets}
                 onSearchChange={onSearchChange}
               />
-              {data.highlight ? <FeaturedBanner nftId={data.highlight.id} /> : null}
+              {data.highlight ? (
+                <Reveal direction="left">
+                  <FeaturedBanner nftId={data.highlight.id} />
+                </Reveal>
+              ) : null}
             </>
           ) : (
             <FilterSkeleton />
@@ -59,9 +64,9 @@ export function CatalogSection({ search, query, onSearchChange }: CatalogSection
             </Button>
           </div>
           {data?.highlight ? (
-            <div className="mb-8 lg:hidden">
+            <Reveal direction="left" className="mb-8 lg:hidden">
               <FeaturedBanner nftId={data.highlight.id} />
-            </div>
+            </Reveal>
           ) : null}
           <CatalogToolbar
             tab={tab}
@@ -102,7 +107,7 @@ export function CatalogSection({ search, query, onSearchChange }: CatalogSection
                 <p className="sr-only" aria-live="polite">
                   {data.total} NFTs encontrados
                 </p>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-3 lg:gap-x-[34px] lg:gap-y-[72px]">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:gap-x-[34px] lg:gap-y-[72px]">
                   {data.items.map((nft) => (
                     <NftCard key={nft.id} nft={nft} />
                   ))}

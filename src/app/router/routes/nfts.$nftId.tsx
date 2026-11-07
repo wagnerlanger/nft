@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { NftInterimPage } from '@/features/catalog/pages'
+import { NftDetailPage } from '@/features/nft-details/pages'
 
 export const Route = createFileRoute('/nfts/$nftId')({
-  component: NftInterimPage,
+  component: NftDetailPage,
 })

@@ -16,6 +16,8 @@ import {
 } from '@/features/auth/api/auth-api'
 import type { LoginInput, RegisterInput } from '@/features/auth/schemas'
 import type { AuthSession, AuthTab } from '@/features/auth/types'
+import { cartKeys, mergeGuestCart } from '@/features/cart/hooks/use-cart'
+import { favoritesKeys } from '@/features/favorites/hooks/use-favorites'
 import { getStoredSessionToken, setStoredSessionToken } from '@/infrastructure/http/axios'
 import { isHttpError } from '@/infrastructure/http/errors'
 
@@ -73,29 +75,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const persistSession = useCallback(
-    (session: AuthSession) => {
+    async (session: AuthSession) => {
       setStoredSessionToken(session.token)
       setHasToken(true)
       queryClient.setQueryData(SESSION_QUERY_KEY, session)
       setAuthOpen(false)
+      try {
+        await mergeGuestCart(queryClient)
+      } catch {
+        void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+      }
+      void queryClient.invalidateQueries({ queryKey: favoritesKeys.all })
       return session
     },
     [queryClient],
   )
 
   const loginMutation = useMutation({
-    mutationFn: loginRequest,
-    onSuccess: persistSession,
+    mutationFn: async (input: LoginInput) => persistSession(await loginRequest(input)),
   })
 
   const registerMutation = useMutation({
-    mutationFn: (input: RegisterInput) =>
-      registerRequest({
-        username: input.username,
-        email: input.email,
-        password: input.password,
-      }),
-    onSuccess: persistSession,
+    mutationFn: async (input: RegisterInput) =>
+      persistSession(
+        await registerRequest({
+          username: input.username,
+          email: input.email,
+          password: input.password,
+        }),
+      ),
   })
 
   const logoutMutation = useMutation({
@@ -104,7 +112,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStoredSessionToken(null)
       setHasToken(false)
       queryClient.setQueryData(SESSION_QUERY_KEY, null)
+      queryClient.removeQueries({ queryKey: favoritesKeys.all })
       void queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY })
+      void queryClient.invalidateQueries({ queryKey: cartKeys.all })
     },
   })
 
