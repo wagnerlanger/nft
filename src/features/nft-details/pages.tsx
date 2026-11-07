@@ -1,11 +1,14 @@
-import { getRouteApi, Link } from '@tanstack/react-router'
-import { useRef } from 'react'
+import { getRouteApi } from '@tanstack/react-router'
+import { useCallback, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useNftDetail } from '@/features/catalog/hooks/use-nfts'
 import { NftBreadcrumbs } from '@/features/nft-details/components/breadcrumbs'
-import { NftDetailTabs } from '@/features/nft-details/components/nft-detail-tabs'
+import {
+  NftDetailTabs,
+  type NftDetailTabId,
+} from '@/features/nft-details/components/nft-detail-tabs'
 import { NftGallery } from '@/features/nft-details/components/nft-gallery'
 import { NftPurchasePanel } from '@/features/nft-details/components/nft-purchase-panel'
 import { RelatedCarousel } from '@/features/nft-details/components/related-carousel'
@@ -13,7 +16,6 @@ import { isHttpError } from '@/infrastructure/http/errors'
 import { nftDisplayName } from '@/mocks/fixtures/nfts'
 import { useIsFavorite, useToggleFavorite } from '../favorites/hooks/use-favorites'
 import { ChevronRightIcon, HeartIcon, HeartSolidIcon } from '@/components/icons'
-import { CheckCheckIcon, ChevronsRight } from 'lucide-react'
 import { useHandleBack } from '../account/hooks/use-handle-back'
 
 const nftRoute = getRouteApi('/nfts/$nftId')
@@ -23,8 +25,15 @@ export function NftDetailPage() {
   const query = useNftDetail(nftId)
   const handleBack = useHandleBack()
   const galleryImageRef = useRef<HTMLImageElement>(null)
+  const tabsRef = useRef<HTMLElement>(null)
+  const [tab, setTab] = useState<NftDetailTabId>('details')
   const { toggleFavorite } = useToggleFavorite()
   const isFavorite = useIsFavorite(nftId)
+
+  const openReviews = useCallback(() => {
+    setTab('reviews')
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
 
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 pb-8 md:px-8 md:py-10 xl:px-[120px] bg-surface-raised md:bg-transparent">
@@ -103,10 +112,19 @@ export function NftDetailPage() {
               isRare={query.data.isRare}
             />
             <div className="rounded-3xl -mt-6 md:mt-0 md:rounded-none relative z-2 bg-card md:bg-transparent shadow-lg -mx-4 p-4">
-              <NftPurchasePanel nft={query.data} imageRef={galleryImageRef} />
+              <NftPurchasePanel
+                nft={query.data}
+                imageRef={galleryImageRef}
+                onOpenReviews={openReviews}
+              />
             </div>
           </article>
-          <NftDetailTabs nft={query.data} />
+          <NftDetailTabs
+            ref={tabsRef}
+            nft={query.data}
+            tab={tab}
+            onTabChange={setTab}
+          />
           <RelatedCarousel nft={query.data} />
         </>
       ) : null}

@@ -11,8 +11,9 @@ import {
   useRemoveCartItem,
   useUpdateCartItem,
 } from '@/features/cart/hooks/use-cart'
-import { ChevronRightIcon } from '@/components/icons'
+import { CartIcon, ChevronRightIcon } from '@/components/icons'
 import { useHandleBack } from '../account/hooks/use-handle-back'
+import { AccountPlaceholder } from '../account/components/account-placeholder'
 
 export function CartPage() {
   const cartQuery = useCart()
@@ -75,11 +76,8 @@ export function CartPage() {
 
       {cartQuery.data && items.length === 0 ? (
         <>
-          <div className="md:mt-8 max-w-lg">
-            <h1 className="text-2xl font-bold">Seu carrinho está vazio</h1>
-            <p className="mt-3 text-sm text-secondary">
-              Explore o mercado e adicione NFTs para continuar a compra.
-            </p>
+          <div className="md:mt-8 max-w-lg text-center">
+            <AccountPlaceholder title="Seu carrinho está vazio" description="Explore o mercado e adicione NFTs para continuar a compra." icon={CartIcon} />
             <Button asChild className="mt-6">
               <Link to="/" hash="catalogo">
                 Continuar explorando

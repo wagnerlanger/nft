@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import type { Ref } from 'react'
 
 import { StarIcon } from '@/components/icons'
 import type { Nft } from '@/features/catalog/types'
@@ -8,7 +8,7 @@ import {
 } from '@/features/nft-details/mocks/reviews'
 import { cn } from '@/shared/utils/cn'
 
-type TabId = 'details' | 'reviews'
+export type NftDetailTabId = 'details' | 'reviews'
 
 function formatReviewDate(iso: string) {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -18,14 +18,23 @@ function formatReviewDate(iso: string) {
   }).format(new Date(iso))
 }
 
-export function NftDetailTabs({ nft }: { nft: Nft }) {
-  const [tab, setTab] = useState<TabId>('details')
+export function NftDetailTabs({
+  nft,
+  tab,
+  onTabChange,
+  ref,
+}: {
+  nft: Nft
+  tab: NftDetailTabId
+  onTabChange: (tab: NftDetailTabId) => void
+  ref?: Ref<HTMLElement>
+}) {
   const reviewCount = collectorReviews.length
   const rating = averageReviewRating(collectorReviews)
   const detailBlocks = nft.details.filter((block) => block.body.trim())
 
   return (
-    <section className="mt-16">
+    <section ref={ref} id="nft-details-tabs" className="mt-16 scroll-mt-24">
       <div role="tablist" aria-label="Informações do NFT" className="border-b border-border flex flex-wrap gap-x-8 gap-y-2">
         <button
           type="button"
@@ -37,7 +46,7 @@ export function NftDetailTabs({ nft }: { nft: Nft }) {
               ? 'border-primary text-accent'
               : 'border-transparent text-foreground-soft hover:text-primary',
           )}
-          onClick={() => setTab('details')}
+          onClick={() => onTabChange('details')}
         >
           Detalhes do NFT
         </button>
@@ -51,7 +60,7 @@ export function NftDetailTabs({ nft }: { nft: Nft }) {
               ? 'border-primary text-accent'
               : 'border-transparent text-foreground-soft hover:text-primary',
           )}
-          onClick={() => setTab('reviews')}
+          onClick={() => onTabChange('reviews')}
         >
           Avaliações de colecionadores ({reviewCount})
         </button>

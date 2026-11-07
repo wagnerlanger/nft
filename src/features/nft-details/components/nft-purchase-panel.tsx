@@ -36,9 +36,11 @@ const EDITIONS = [
 export function NftPurchasePanel({
   nft,
   imageRef,
+  onOpenReviews,
 }: {
   nft: Nft
   imageRef?: RefObject<HTMLImageElement | null>
+  onOpenReviews?: () => void
 }) {
   const label = nftDisplayName(nft)
   const [editionId, setEditionId] = useState<(typeof EDITIONS)[number]['id']>('1-50')
@@ -66,19 +68,28 @@ export function NftPurchasePanel({
 
   return (
     <div className='flex-1'>
-      <div className="flex justify-between GAP-2">
+      <div className="flex justify-between gap-2">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground md:text-4xl">{label}</h1>
-        <div className="flex md:hidden text-sm items-center gap-1 border border-amber rounded-full px-2 text-muted">
-          <StarIcon
-            className={cn('size-4 text-amber')}
-          />
-          <span className="text-foreground">{rating} </span>({reviewCount})
-        </div>
+        <button
+          type="button"
+          onClick={onOpenReviews}
+          className="flex shrink-0 md:hidden text-sm items-center gap-1 border border-amber rounded-full px-2 text-muted"
+          aria-label={`Ver ${reviewCount} avaliações`}
+        >
+          <StarIcon className="size-4 text-amber" />
+          <span className="text-foreground">{rating}</span>
+          <span>({reviewCount})</span>
+        </button>
       </div>
       <div className="hidden md:flex flex-wrap justify-between border-b border-border pb-3">
         <p className="mt-3 text-2xl text-nowrap font-bold text-accent">{formatEth(nft.priceEth)}</p>
-        <div className="mt-3 flex items-center gap-2 text-sm text-foreground-soft">
-          <div className="flex items-center gap-0.5 text-amber" aria-label={`${rating} de 5 estrelas`}>
+        <button
+          type="button"
+          onClick={onOpenReviews}
+          className="mt-3 flex items-center gap-2 text-sm text-foreground-soft hover:text-primary transition-colors"
+          aria-label={`Ver ${reviewCount} avaliações de colecionadores`}
+        >
+          <div className="flex items-center gap-0.5 text-amber" aria-hidden>
             {Array.from({ length: 5 }, (_, index) => (
               <StarIcon
                 key={index}
@@ -87,7 +98,7 @@ export function NftPurchasePanel({
             ))}
           </div>
           <span>{reviewCount} avaliações de colecionadores</span>
-        </div>
+        </button>
       </div>
 
       <div className="mt-6">
