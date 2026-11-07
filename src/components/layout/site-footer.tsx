@@ -1,22 +1,59 @@
 import { Link } from '@tanstack/react-router'
-import type { FormEvent } from 'react'
+import type { FormEvent, SVGProps } from 'react'
 
 import { BrandLogo } from '@/components/brand-logo'
 import { CATEGORIES } from '@/shared/constants/catalog'
-import { ImageIcon, MessageIcon, UserIcon } from '../icons'
+import {
+  FacebookIcon,
+  ImageIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  MessageIcon,
+  TwitterIcon,
+  UserIcon,
+} from '../icons'
 import { Button } from '../ui/button'
 
-const profileLinks = ['Meu perfil', 'Minha coleção', 'Atividade', 'Estúdio do criador', 'Lista de interesse']
-const helpLinks = ['Central de ajuda', 'Como comprar NFTs', 'Carteira e segurança', 'Política do mercado', 'Denunciar item']
-const socials = ['Instagram', 'Facebook', 'X', 'LinkedIn', 'YouTube']
+type FooterLink = { name: string; url: string }
+type SocialLink = {
+  name: string
+  url: string
+  icon: (props: SVGProps<SVGSVGElement>) => React.ReactNode
+}
 
-function QuietList({ title, items }: { title: string; items: string[] }) {
+const profileLinks: FooterLink[] = [
+  { name: 'Meu perfil', url: '/' },
+  { name: 'Minha coleção', url: '/' },
+  { name: 'Atividade', url: '/' },
+  { name: 'Estúdio do criador', url: '/' },
+  { name: 'Lista de interesse', url: '/' },
+]
+const helpLinks: FooterLink[] = [
+  { name: 'Central de ajuda', url: '/' },
+  { name: 'Como comprar NFTs', url: '/' },
+  { name: 'Carteira e segurança', url: '/' },
+  { name: 'Política do mercado', url: '/' },
+  { name: 'Denunciar item', url: '/' },
+]
+const socials: SocialLink[] = [
+  { name: 'Facebook', url: 'https://facebook.com', icon: FacebookIcon },
+  { name: 'Instagram', url: 'https://instagram.com', icon: InstagramIcon },
+  { name: 'X', url: 'https://x.com', icon: TwitterIcon },
+  { name: 'LinkedIn', url: 'https://linkedin.com', icon: LinkedInIcon },
+]
+const wallets = ['METAMASK', 'WALLETCONNECT', 'COINBASE']
+
+function QuietList({ title, items }: { title: string; items: FooterLink[] }) {
   return (
     <div>
       <h3 className="text-lg font-bold text-foreground">{title}</h3>
       <ul className="mt-4 space-y-2 text-sm text-secondary">
         {items.map((item) => (
-          <li key={item}>{item}</li>
+          <li key={item.name}>
+            <Link to={item.url} className="hover:text-accent">
+              {item.name}
+            </Link>
+          </li>
         ))}
       </ul>
     </div>
@@ -130,15 +167,34 @@ export function SiteFooter() {
         </div>
         <div>
           <h3 className="text-lg font-bold">Redes sociais</h3>
-          <ul className="mt-4 flex flex-wrap gap-3 text-sm text-secondary">
-            {socials.map((social) => (
-              <li key={social}>{social}</li>
-            ))}
+          <ul className="mt-4 flex flex-wrap gap-3">
+            {socials.map((social) => {
+              const Icon = social.icon
+              return (
+                <li key={social.name}>
+                  <Button asChild variant="outline" size="sm" className="px-2 text-primary">
+                    <a
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.name}
+                    >
+                      <Icon className="size-4" />
+                    </a>
+                  </Button>
+                </li>
+              )
+            })}
           </ul>
           <h3 className="mt-6 text-lg font-bold">Carteiras compatíveis</h3>
-          <p className="mt-3 text-[9px] font-bold tracking-wide text-secondary">
-            METAMASK • WALLETCONNECT • COINBASE
-          </p>
+          <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-soft bg-surface-dark px-4 py-2 text-[9px] font-bold tracking-wide text-primary">
+            {wallets.map((wallet, index) => (
+              <span key={wallet} className="contents">
+                {index > 0 ? <span aria-hidden="true">•</span> : null}
+                <span>{wallet}</span>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
       <p className="text-center text-sm text-secondary mt-6">© 2026 Kurio. Propriedade digital para todos.</p>

@@ -22,7 +22,7 @@ export function CatalogPagination({
           key={item}
           variant={item === page ? 'primary' : 'outline'}
           size="sm"
-          className="border-card min-w-[36px]"
+          className="border-border min-w-[36px]"
           aria-current={item === page ? 'page' : undefined}
           onClick={() => onPageChange(item)}
         >
@@ -32,7 +32,7 @@ export function CatalogPagination({
       <Button
         variant="outline"
         size="sm"
-        className="px-2 border-card min-w-[36px]"
+        className="px-2 border-border min-w-[36px]"
         aria-label="Próxima página"
         disabled={page >= pages}
         onClick={() => onPageChange(page + 1)}
