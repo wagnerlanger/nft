@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import { HttpError } from '@/infrastructure/http/errors'
+import { notifySessionExpired } from '@/infrastructure/http/session-events'
 
 const SCENARIO_HEADER = 'x-kurio-scenario'
 const GUEST_HEADER = 'x-guest-id'
@@ -55,11 +56,22 @@ http.interceptors.response.use(
     if (axios.isAxiosError(error)) {
       const status = error.response?.status ?? 0
       const data = error.response?.data as { message?: string; code?: string } | undefined
+      const code = data?.code ?? 'http_error'
+
+      if (
+        status === 401 &&
+        code === 'session_expired' &&
+        !String(error.config?.url ?? '').includes('/auth/login')
+      ) {
+        setStoredSessionToken(null)
+        notifySessionExpired()
+      }
+
       return Promise.reject(
         new HttpError(
           status,
           data?.message ?? 'Não foi possível concluir a requisição.',
-          data?.code ?? 'http_error',
+          code,
         ),
       )
     }

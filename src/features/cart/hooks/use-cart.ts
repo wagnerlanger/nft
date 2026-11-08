@@ -8,10 +8,16 @@ import {
   updateCartItemRequest,
 } from '@/features/cart/api/cart-api'
 import type { CartResponse } from '@/features/cart/types'
+import { quoteKeys } from '@/features/quote/hooks/use-quote'
 import { isHttpError } from '@/infrastructure/http/errors'
 
 export const cartKeys = {
   all: ['cart'] as const,
+}
+
+function invalidateCartAndQuote(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+  void queryClient.invalidateQueries({ queryKey: quoteKeys.all })
 }
 
 function retryQuery(failureCount: number, error: unknown) {
@@ -49,7 +55,7 @@ export function useAddToCart() {
       syncCartCache(queryClient, cart)
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+      invalidateCartAndQuote(queryClient)
     },
   })
 }
@@ -64,7 +70,7 @@ export function useUpdateCartItem() {
       syncCartCache(queryClient, cart)
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+      invalidateCartAndQuote(queryClient)
     },
   })
 }
@@ -78,7 +84,7 @@ export function useRemoveCartItem() {
       syncCartCache(queryClient, cart)
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+      invalidateCartAndQuote(queryClient)
     },
   })
 }
@@ -87,5 +93,6 @@ export async function mergeGuestCart(queryClient: ReturnType<typeof useQueryClie
   const cart = await mergeGuestCartRequest()
   queryClient.setQueryData<CartResponse>(cartKeys.all, cart)
   await queryClient.invalidateQueries({ queryKey: cartKeys.all })
+  await queryClient.invalidateQueries({ queryKey: quoteKeys.all })
   return cart
 }

@@ -1,13 +1,20 @@
 import { delay, http, HttpResponse } from 'msw'
 
 import { createOrderBodySchema } from '@/features/orders/schemas'
-import { createOrder, listOrdersForUser } from '@/mocks/database/orders'
+import { createOrder, getOrderById, listOrdersForUser } from '@/mocks/database/orders'
 import { readScenario, scenarioDelay } from '@/mocks/scenarios'
 
 export const ordersHandlers = [
   http.get('/api/orders', async ({ request }) => {
     const scenario = readScenario(request)
     await delay(scenarioDelay(scenario))
+
+    if (scenario === 'session_expired') {
+      return HttpResponse.json(
+        { message: 'Sessão expirada. Entre novamente.', code: 'session_expired' },
+        { status: 401 },
+      )
+    }
 
     const result = listOrdersForUser(request)
     if (!result.ok) {
@@ -18,15 +25,41 @@ export const ordersHandlers = [
     return HttpResponse.json({ items: result.orders })
   }),
 
+  http.get('/api/orders/:orderId', async ({ params, request }) => {
+    const scenario = readScenario(request)
+    await delay(scenarioDelay(scenario))
+
+    if (scenario === 'session_expired') {
+      return HttpResponse.json(
+        { message: 'Sessão expirada. Entre novamente.', code: 'session_expired' },
+        { status: 401 },
+      )
+    }
+
+    const orderId = String(params.orderId ?? '')
+    const result = getOrderById(request, orderId)
+    if (!result.ok) {
+      const payload = await result.response.json()
+      return HttpResponse.json(payload, { status: result.response.status })
+    }
+
+    return HttpResponse.json(result.order)
+  }),
+
   http.post('/api/orders', async ({ request }) => {
     const scenario = readScenario(request)
     await delay(scenarioDelay(scenario))
 
-    if (scenario === 'error') {
+    if (scenario === 'session_expired') {
       return HttpResponse.json(
-        { message: 'Pagamento recusado pela rede.', code: 'payment_refused' },
-        { status: 502 },
+        { message: 'Sessão expirada. Entre novamente.', code: 'session_expired' },
+        { status: 401 },
       )
+    }
+
+    // payment_refused still creates pending then settles to refused via timer
+    if (scenario === 'error' && !['payment_refused', 'order_timeout'].includes(scenario)) {
+      // unreachable due to includes check, kept for clarity
     }
 
     const idempotencyKey = request.headers.get('Idempotency-Key')?.trim()
@@ -55,7 +88,7 @@ export const ordersHandlers = [
       )
     }
 
-    const result = createOrder(request, parsed.data, idempotencyKey)
+    const result = createOrder(request, parsed.data, idempotencyKey, scenario)
     if (!result.ok) {
       const payload = await result.response.json()
       return HttpResponse.json(payload, { status: result.response.status })

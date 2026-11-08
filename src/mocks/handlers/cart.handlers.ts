@@ -8,6 +8,7 @@ import {
   updateCartItem,
 } from '@/mocks/database/cart'
 import { readScenario, scenarioDelay } from '@/mocks/scenarios'
+import { bumpCartItemPriceForDemo } from '@/mocks/socket/emitter'
 
 export const cartHandlers = [
   http.get('/api/cart', async ({ request }) => {
@@ -21,8 +22,22 @@ export const cartHandlers = [
       )
     }
 
+    if (scenario === 'session_expired') {
+      return HttpResponse.json(
+        { message: 'Sessão expirada. Entre novamente.', code: 'session_expired' },
+        { status: 401 },
+      )
+    }
+
     const result = getCart(request)
     if (!result.ok) return result.response
+
+    if (scenario === 'price_change' && result.cart.items[0]) {
+      window.setTimeout(() => {
+        bumpCartItemPriceForDemo(result.cart.items[0].nftId)
+      }, 600)
+    }
+
     return HttpResponse.json(result.cart)
   }),
 

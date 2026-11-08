@@ -6,28 +6,35 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthModal } from '@/features/auth/components/auth-modal'
 import { AuthProvider } from '@/features/auth/auth-context'
 import { CatalogFiltersUiProvider } from '@/features/catalog/catalog-filters-ui-context'
+import {
+  RealtimeNoticeBanner,
+  SocketProvider,
+} from '@/infrastructure/socket/socket-provider'
 
 export function MainLayout() {
   return (
     <AuthProvider>
-      <CatalogFiltersUiProvider>
-        <TooltipProvider>
-          <div className="min-h-screen bg-background text-foreground pb-[100px] md:pb-0">
-            <a
-              href="#content"
-              className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:px-3 focus:py-2 focus:text-ink"
-            >
-              Ir para o conteúdo
-            </a>
-            <SiteHeader />
-            <div id="content">
-              <Outlet />
+      <SocketProvider>
+        <CatalogFiltersUiProvider>
+          <TooltipProvider>
+            <div className="min-h-screen bg-background text-foreground pb-[100px] md:pb-0">
+              <a
+                href="#content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:px-3 focus:py-2 focus:text-ink"
+              >
+                Ir para o conteúdo
+              </a>
+              <SiteHeader />
+              <div id="content">
+                <Outlet />
+              </div>
+              <SiteFooter />
+              <AuthModal />
+              <RealtimeNoticeBanner />
             </div>
-            <SiteFooter />
-            <AuthModal />
-          </div>
-        </TooltipProvider>
-      </CatalogFiltersUiProvider>
+          </TooltipProvider>
+        </CatalogFiltersUiProvider>
+      </SocketProvider>
     </AuthProvider>
   )
 }

@@ -6,3 +6,7 @@ dist
 .vite
 playwright-report
 test-results
+audits/*.json
+!audits/.gitkeep
+blob-report
+

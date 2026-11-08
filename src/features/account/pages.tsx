@@ -1,4 +1,4 @@
-import { Link, Outlet } from '@tanstack/react-router'
+import { Outlet } from '@tanstack/react-router'
 
 import { AccountShell } from '@/features/account/components/account-shell'
 import { useAuth } from '@/features/auth/hooks/use-auth'

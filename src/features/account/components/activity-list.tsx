@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useOrdersQuery } from '@/features/orders/hooks/use-orders'
+import type { OrderStatus } from '@/features/orders/types'
 import { formatEth } from '@/shared/formatters/eth'
 import { isHttpError } from '@/infrastructure/http/errors'
 
@@ -14,9 +15,16 @@ function formatDate(iso: string) {
   }
 }
 
-function shortHash(hash: string) {
+function shortHash(hash: string | null) {
+  if (!hash) return '—'
   if (hash.length < 12) return hash
   return `${hash.slice(0, 6)}…${hash.slice(-4)}`
+}
+
+function statusLabel(status: OrderStatus) {
+  if (status === 'pending') return 'Pedido pendente'
+  if (status === 'refused') return 'Pedido recusado'
+  return 'Pedido confirmado'
 }
 
 export function ActivityList() {
@@ -58,7 +66,8 @@ export function ActivityList() {
                 <div>
                   <p className="text-sm text-secondary">{formatDate(order.createdAt)}</p>
                   <p className="mt-1 text-sm font-bold text-foreground">
-                    Pedido confirmado · {shortHash(order.txHash)}
+                    {statusLabel(order.status)}
+                    {order.txHash ? ` · ${shortHash(order.txHash)}` : null}
                   </p>
                 </div>
                 <p className="text-sm font-bold text-primary">{formatEth(order.totalEth)}</p>
@@ -75,7 +84,8 @@ export function ActivityList() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-foreground">{item.name}</p>
                       <p className="text-xs text-secondary">
-                        Qtd. {item.quantity} · <span className="text-primary">{formatEth(item.lineTotalEth)}</span>
+                        Qtd. {item.quantity} ·{' '}
+                        <span className="text-primary">{formatEth(item.lineTotalEth)}</span>
                       </p>
                     </div>
                   </li>

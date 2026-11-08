@@ -1,7 +1,9 @@
+import { useRouter } from '@tanstack/react-router'
 import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -14,15 +16,23 @@ import {
   logoutRequest,
   registerRequest,
 } from '@/features/auth/api/auth-api'
+import {
+  clearAuthReturnTo,
+  readAuthReturnTo,
+  writeAuthReturnTo,
+  type AuthReturnTo,
+} from '@/features/auth/return-to'
 import type { LoginInput, RegisterInput } from '@/features/auth/schemas'
 import type { AuthSession, AuthTab } from '@/features/auth/types'
 import { profileKeys } from '@/features/account/hooks/use-profile'
 import { cartKeys, mergeGuestCart } from '@/features/cart/hooks/use-cart'
 import { favoritesKeys } from '@/features/favorites/hooks/use-favorites'
 import { ordersKeys } from '@/features/orders/hooks/use-orders'
+import { quoteKeys } from '@/features/quote/hooks/use-quote'
 import { walletsKeys } from '@/features/wallets/hooks/use-wallets'
 import { getStoredSessionToken, setStoredSessionToken } from '@/infrastructure/http/axios'
 import { isHttpError } from '@/infrastructure/http/errors'
+import { onSessionExpired } from '@/infrastructure/http/session-events'
 
 type AuthContextValue = {
   session: AuthSession | null
@@ -30,7 +40,7 @@ type AuthContextValue = {
   isAuthenticated: boolean
   authOpen: boolean
   authTab: AuthTab
-  openAuth: (tab?: AuthTab) => void
+  openAuth: (tab?: AuthTab, returnTo?: AuthReturnTo) => void
   closeAuth: () => void
   setAuthTab: (tab: AuthTab) => void
   login: (input: LoginInput) => Promise<AuthSession>
@@ -46,9 +56,35 @@ const SESSION_QUERY_KEY = ['auth', 'session'] as const
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
+  const router = useRouter()
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState<AuthTab>('login')
   const [hasToken, setHasToken] = useState(() => Boolean(getStoredSessionToken()))
+
+  const clearPrivateCache = useCallback(() => {
+    queryClient.setQueryData(SESSION_QUERY_KEY, null)
+    queryClient.removeQueries({ queryKey: favoritesKeys.all })
+    queryClient.removeQueries({ queryKey: profileKeys.all })
+    queryClient.removeQueries({ queryKey: walletsKeys.all })
+    queryClient.removeQueries({ queryKey: ordersKeys.all })
+    void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+    void queryClient.invalidateQueries({ queryKey: quoteKeys.all })
+  }, [queryClient])
+
+  const handleSessionExpired = useCallback(() => {
+    setStoredSessionToken(null)
+    setHasToken(false)
+    clearPrivateCache()
+    writeAuthReturnTo({
+      pathname: window.location.pathname,
+      search: window.location.search,
+      hash: window.location.hash,
+    })
+    setAuthTab('login')
+    setAuthOpen(true)
+  }, [clearPrivateCache])
+
+  useEffect(() => onSessionExpired(handleSessionExpired), [handleSessionExpired])
 
   const sessionQuery = useQuery({
     queryKey: SESSION_QUERY_KEY,
@@ -77,6 +113,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.setQueryData(SESSION_QUERY_KEY, null)
   }
 
+  const resumeAfterAuth = useCallback(() => {
+    const returnTo = readAuthReturnTo()
+    clearAuthReturnTo()
+    if (!returnTo) return
+    const href = `${returnTo.pathname}${returnTo.search ?? ''}${returnTo.hash ?? ''}`
+    if (href !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      void router.history.push(href)
+    }
+  }, [router])
+
   const persistSession = useCallback(
     async (session: AuthSession) => {
       setStoredSessionToken(session.token)
@@ -89,9 +135,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         void queryClient.invalidateQueries({ queryKey: cartKeys.all })
       }
       void queryClient.invalidateQueries({ queryKey: favoritesKeys.all })
+      resumeAfterAuth()
       return session
     },
-    [queryClient],
+    [queryClient, resumeAfterAuth],
   )
 
   const loginMutation = useMutation({
@@ -114,18 +161,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSettled: () => {
       setStoredSessionToken(null)
       setHasToken(false)
-      queryClient.setQueryData(SESSION_QUERY_KEY, null)
-      queryClient.removeQueries({ queryKey: favoritesKeys.all })
-      queryClient.removeQueries({ queryKey: profileKeys.all })
-      queryClient.removeQueries({ queryKey: walletsKeys.all })
-      queryClient.removeQueries({ queryKey: ordersKeys.all })
+      clearPrivateCache()
       void queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY })
-      void queryClient.invalidateQueries({ queryKey: cartKeys.all })
     },
   })
 
-  const openAuth = useCallback((tab: AuthTab = 'login') => {
+  const openAuth = useCallback((tab: AuthTab = 'login', returnTo?: AuthReturnTo) => {
     setAuthTab(tab)
+    if (returnTo) {
+      writeAuthReturnTo(returnTo)
+    } else if (window.location.pathname !== '/') {
+      writeAuthReturnTo({
+        pathname: window.location.pathname,
+        search: window.location.search,
+        hash: window.location.hash,
+      })
+    }
     setAuthOpen(true)
   }, [])
 

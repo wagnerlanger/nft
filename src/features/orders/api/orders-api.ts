@@ -8,6 +8,11 @@ export async function fetchOrdersRequest(signal?: AbortSignal) {
   return ordersListSchema.parse(data).items satisfies Order[]
 }
 
+export async function fetchOrderByIdRequest(orderId: string, signal?: AbortSignal) {
+  const { data } = await http.get<unknown>(`/orders/${orderId}`, { signal })
+  return orderSchema.parse(data) satisfies Order
+}
+
 export async function createOrderRequest(body: CreateOrderBody, idempotencyKey: string) {
   const { data } = await http.post<unknown>('/orders', body, {
     headers: {

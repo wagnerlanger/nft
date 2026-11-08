@@ -19,9 +19,9 @@ export function AuthModal() {
         if (!open) closeAuth()
       }}
     >
-      <DialogContent className="md:p-14">
-        <div className="mb-6 text-center">
-          <div className="flex items-center justify-center gap-3 text-lg font-bold">
+      <DialogContent className="w-[min(100%-1.5rem,500px)] max-md:max-h-[min(100vh-1.5rem,40rem)] max-md:rounded-2xl max-md:p-5 max-md:pt-10 md:p-14">
+        <div className="mb-5 text-center md:mb-6">
+          <div className="flex items-center justify-center gap-3 text-base font-bold md:text-lg">
             <button
               type="button"
               className={cn(

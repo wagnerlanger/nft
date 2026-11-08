@@ -13,6 +13,23 @@ export interface CatalogQuery extends CatalogSearch {
   page: number
 }
 
+type NftRuntimeOverride = {
+  priceEth?: string
+  availableEditions?: number
+  version: number
+}
+
+const nftOverrides = new Map<string, NftRuntimeOverride>()
+
+function withOverrides(nft: Nft): Nft {
+  const override = nftOverrides.get(nft.id)
+  if (!override) return nft
+  return {
+    ...nft,
+    priceEth: override.priceEth ?? nft.priceEth,
+  }
+}
+
 function matches(
   nft: Nft,
   query: CatalogQuery,
@@ -50,35 +67,40 @@ function sortNfts(items: Nft[], sort: CatalogQuery['sort']) {
   return next
 }
 
+function allNfts() {
+  return nftFixtures.map(withOverrides)
+}
+
 function priceBounds() {
-  const prices = nftFixtures.map((nft) => new Decimal(nft.priceEth))
+  const prices = allNfts().map((nft) => new Decimal(nft.priceEth))
   const min = Decimal.min(...prices)
   const max = Decimal.max(...prices)
   return { min: min.toFixed(2), max: max.toFixed(2) }
 }
 
 export function queryCatalog(query: CatalogQuery): NftListResponse {
+  const catalog = allNfts()
   const filtered = sortNfts(
-    nftFixtures.filter((nft) => matches(nft, query)),
+    catalog.filter((nft) => matches(nft, query)),
     query.sort ?? 'recent',
   )
   const start = (query.page - 1) * PAGE_SIZE
   const categories = CATEGORIES.map((category) => ({
     id: category.id,
     label: category.label,
-    count: nftFixtures.filter(
+    count: catalog.filter(
       (nft) => nft.category === category.id && matches(nft, query, { ignoreCategory: true }),
     ).length,
   }))
   const chains = CHAINS.map((chain) => ({
     id: chain.id,
     label: chain.label,
-    count: nftFixtures.filter(
+    count: catalog.filter(
       (nft) => nft.chain === chain.id && matches(nft, query, { ignoreChain: true }),
     ).length,
   }))
   const highlight =
-    nftFixtures.find((nft) => nft.limitedOffer && matches(nft, query)) ?? null
+    catalog.find((nft) => nft.limitedOffer && matches(nft, query)) ?? null
 
   return {
     items: filtered.slice(start, start + PAGE_SIZE),
@@ -95,7 +117,31 @@ export function queryCatalog(query: CatalogQuery): NftListResponse {
 }
 
 export function findNft(id: string) {
-  return nftFixtures.find((nft) => nft.id === id) ?? null
+  const nft = nftFixtures.find((item) => item.id === id) ?? null
+  return nft ? withOverrides(nft) : null
+}
+
+export function listNfts() {
+  return nftFixtures.map(withOverrides)
+}
+
+export function applyNftPriceUpdate(nftId: string, priceEth: string) {
+  const current = nftOverrides.get(nftId)
+  const version = (current?.version ?? 0) + 1
+  nftOverrides.set(nftId, {
+    ...current,
+    priceEth,
+    version,
+  })
+  return { nftId, priceEth, version }
+}
+
+export function getNftVersion(nftId: string) {
+  return nftOverrides.get(nftId)?.version ?? 0
+}
+
+export function resetNftOverrides() {
+  nftOverrides.clear()
 }
 
 export function emptyCatalog(query: CatalogQuery): NftListResponse {

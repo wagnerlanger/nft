@@ -1,9 +1,18 @@
-import { Link, Navigate } from '@tanstack/react-router'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, Navigate, useNavigate } from '@tanstack/react-router'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ChevronRightIcon } from '@/components/icons'
+import { useHandleBack } from '@/features/account/hooks/use-handle-back'
 import { useAuth } from '@/features/auth/hooks/use-auth'
+import {
+  clearCheckoutDraft,
+  readCheckoutDraft,
+  writeCheckoutDraft,
+} from '@/features/auth/return-to'
+import { CartBreadcrumbs } from '@/features/cart/components/cart-breadcrumbs'
+import { useCart } from '@/features/cart/hooks/use-cart'
 import { CheckoutBreadcrumbs } from '@/features/checkout/components/checkout-breadcrumbs'
 import { CheckoutOrderSummary } from '@/features/checkout/components/checkout-order-summary'
 import { PrimaryWalletForm } from '@/features/checkout/components/primary-wallet-form'
@@ -13,16 +22,20 @@ import {
   type CheckoutWalletFormValues,
   type WalletProvider,
 } from '@/features/checkout/schemas'
-import { useCart } from '@/features/cart/hooks/use-cart'
 import { OrderConfirmationDialog } from '@/features/orders/components/order-confirmation-dialog'
 import { useCreateOrder } from '@/features/orders/hooks/use-create-order'
+import { useOrderQuery } from '@/features/orders/hooks/use-orders'
+import {
+  clearPendingOrderSnapshot,
+  readPendingOrderSnapshot,
+  writePendingOrderSnapshot,
+} from '@/features/orders/pending-order-storage'
 import type { Order } from '@/features/orders/types'
+import { fetchQuoteRequest } from '@/features/quote/api/quote-api'
+import type { Quote } from '@/features/quote/types'
 import { useWalletsQuery } from '@/features/wallets/hooks/use-wallets'
 import { isHttpError } from '@/infrastructure/http/errors'
 import { zodFieldErrors } from '@/shared/utils/form-errors'
-import { CartBreadcrumbs } from '../cart/components/cart-breadcrumbs'
-import { ChevronRightIcon } from '@/components/icons'
-import { useHandleBack } from '../account/hooks/use-handle-back'
 
 type FieldErrors = Partial<Record<(typeof checkoutWalletFormFields)[number], string>>
 
@@ -45,6 +58,7 @@ function emptyFormValues(prefill?: { displayName?: string; email?: string }): Ch
 }
 
 export function CheckoutPage() {
+  const navigate = useNavigate()
   const { session, isAuthenticated, openAuth } = useAuth()
   const cartQuery = useCart()
   const handleBack = useHandleBack()
@@ -52,21 +66,40 @@ export function CheckoutPage() {
   const createOrder = useCreateOrder()
   const items = cartQuery.data?.items ?? []
 
-  const [values, setValues] = useState<CheckoutWalletFormValues>(() =>
-    emptyFormValues({
+  const [values, setValues] = useState<CheckoutWalletFormValues>(() => {
+    const draft = readCheckoutDraft<CheckoutWalletFormValues>()
+    if (draft) return draft
+    return emptyFormValues({
       displayName: session?.user.displayName,
       email: session?.user.email,
-    }),
-  )
+    })
+  })
   const [errors, setErrors] = useState<FieldErrors>({})
   const [provider, setProvider] = useState<WalletProvider | null>(null)
   const [providerError, setProviderError] = useState<string>()
   const [submitError, setSubmitError] = useState<string>()
+  const [quoteStaleMessage, setQuoteStaleMessage] = useState<string>()
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
+  const [refusedOrder, setRefusedOrder] = useState<Order | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const idempotencyKeyRef = useRef<string | null>(null)
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(
+    () => readPendingOrderSnapshot()?.orderId ?? null,
+  )
+  const [latestQuote, setLatestQuote] = useState<Quote | undefined>()
+  const idempotencyKeyRef = useRef<string | null>(
+    readPendingOrderSnapshot()?.idempotencyKey ?? null,
+  )
   const sessionPrefilledRef = useRef(false)
   const walletPrefilledRef = useRef(false)
+  const submittingRef = useRef(false)
+
+  const pendingOrderQuery = useOrderQuery(pendingOrderId, {
+    refetchInterval: pendingOrderId ? 1500 : false,
+  })
+
+  const handleQuoteChange = useCallback((quote: Quote | undefined) => {
+    setLatestQuote(quote)
+  }, [])
 
   useEffect(() => {
     if (!session || sessionPrefilledRef.current) return
@@ -92,22 +125,40 @@ export function CheckoutPage() {
     walletPrefilledRef.current = true
   }, [walletsQuery.isSuccess, walletsQuery.data])
 
+  useEffect(() => {
+    const order = pendingOrderQuery.data
+    if (!order) return
+
+    if (order.status === 'confirmed') {
+      clearPendingOrderSnapshot()
+      setPendingOrderId(null)
+      idempotencyKeyRef.current = null
+      setConfirmedOrder(order)
+      setDialogOpen(true)
+      setRefusedOrder(null)
+      void cartQuery.refetch()
+    } else if (order.status === 'refused') {
+      clearPendingOrderSnapshot()
+      setPendingOrderId(null)
+      idempotencyKeyRef.current = null
+      setRefusedOrder(order)
+      setSubmitError(order.refuseReason ?? 'Pagamento recusado pela rede.')
+    }
+  }, [pendingOrderQuery.data, cartQuery])
+
   if (!isAuthenticated) {
     return (
-      <main className="mx-auto w-full max-w-[1440px] px-4 pb-8 md:px-8 md:py-10 xl:px-[120px] md:bg-transparent">
-        <div className="flex items-center md:hidden sticky top-0 bg-background z-10 -mx-4 px-4 pt-8 pb-2 gap-4">
+      <main className="mx-auto w-full max-w-[1440px] px-4 pb-8 md:bg-transparent md:px-8 md:py-10 xl:px-[120px]">
+        <div className="sticky top-0 z-10 -mx-4 flex items-center gap-4 bg-background px-4 pt-8 pb-2 md:hidden">
           <Button
             variant="outline"
             size="sm"
             onClick={() => handleBack()}
-            className="border-border rounded-full px-2 text-muted bg-card"
+            className="rounded-full border-border bg-card px-2 text-muted"
           >
             <ChevronRightIcon className="size-5 -scale-x-100" />
           </Button>
-          <h2 className="text-lg font-bold text-foreground flex-1 text-center pr-12">
-            Pagamento
-          </h2>
-
+          <h2 className="flex-1 pr-12 text-center text-lg font-bold text-foreground">Pagamento</h2>
         </div>
         <div className="py-24 text-center">
           <p className="mt-3 text-sm text-secondary">
@@ -125,7 +176,7 @@ export function CheckoutPage() {
     )
   }
 
-  if (cartQuery.isSuccess && items.length === 0 && !dialogOpen) {
+  if (cartQuery.isSuccess && items.length === 0 && !dialogOpen && !pendingOrderId) {
     return <Navigate to="/cart" />
   }
 
@@ -135,6 +186,7 @@ export function CheckoutPage() {
   ) {
     const next = { ...values, [key]: value }
     setValues(next)
+    writeCheckoutDraft(next)
     if (Object.keys(errors).length > 0) {
       const parsed = checkoutWalletFormSchema.safeParse(next)
       if (parsed.success) {
@@ -145,9 +197,13 @@ export function CheckoutPage() {
     }
   }
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (submittingRef.current || createOrder.isPending || pendingOrderId) return
+
     setSubmitError(undefined)
+    setQuoteStaleMessage(undefined)
+    setRefusedOrder(null)
 
     const parsed = checkoutWalletFormSchema.safeParse(values)
     if (!parsed.success) {
@@ -162,54 +218,87 @@ export function CheckoutPage() {
     }
     setProviderError(undefined)
 
-    if (!idempotencyKeyRef.current) {
-      idempotencyKeyRef.current = crypto.randomUUID()
-    }
+    submittingRef.current = true
+    try {
+      const freshQuote = await fetchQuoteRequest({})
+      if (latestQuote && freshQuote.fingerprint !== latestQuote.fingerprint) {
+        setLatestQuote(freshQuote)
+        setQuoteStaleMessage(
+          'Preço, disponibilidade ou cupom mudaram. Revise o resumo e confirme novamente.',
+        )
+        return
+      }
 
-    createOrder.mutate(
-      {
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = crypto.randomUUID()
+      }
+
+      const order = await createOrder.mutateAsync({
         idempotencyKey: idempotencyKeyRef.current,
         body: {
           ...parsed.data,
           ensOrSecondary: parsed.data.ensOrSecondary || undefined,
           collectorNote: parsed.data.collectorNote || undefined,
           walletProvider: provider,
+          promoCode: freshQuote.promoCode ?? undefined,
+          quoteFingerprint: freshQuote.fingerprint,
         },
-      },
-      {
-        onSuccess: (order) => {
-          idempotencyKeyRef.current = null
-          setConfirmedOrder(order)
-          setDialogOpen(true)
-        },
-        onError: (error) => {
-          setSubmitError(
-            isHttpError(error)
-              ? error.message
-              : 'Não foi possível confirmar a compra. Tente novamente.',
-          )
-        },
-      },
-    )
+      })
+
+      if (order.status === 'confirmed') {
+        clearPendingOrderSnapshot()
+        clearCheckoutDraft()
+        idempotencyKeyRef.current = null
+        setConfirmedOrder(order)
+        setDialogOpen(true)
+        return
+      }
+
+      if (order.status === 'refused') {
+        clearPendingOrderSnapshot()
+        idempotencyKeyRef.current = null
+        setRefusedOrder(order)
+        setSubmitError(order.refuseReason ?? 'Pagamento recusado pela rede.')
+        return
+      }
+
+      writePendingOrderSnapshot({
+        orderId: order.id,
+        idempotencyKey: idempotencyKeyRef.current,
+      })
+      setPendingOrderId(order.id)
+    } catch (error) {
+      setSubmitError(
+        isHttpError(error)
+          ? error.message
+          : 'Não foi possível confirmar a compra. Tente novamente.',
+      )
+      if (isHttpError(error) && error.code === 'quote_stale') {
+        setQuoteStaleMessage(error.message)
+      }
+    } finally {
+      submittingRef.current = false
+    }
   }
 
+  const processing = Boolean(pendingOrderId) || createOrder.isPending
+
   return (
-    <main className="mx-auto w-full max-w-[1440px] px-4 pb-8 md:px-8 md:py-10 xl:px-[120px] md:bg-transparent">
+    <main className="mx-auto w-full max-w-[1440px] px-4 pb-8 md:bg-transparent md:px-8 md:py-10 xl:px-[120px]">
       <div className="hidden md:block">
         <CheckoutBreadcrumbs />
       </div>
 
-      <div className="flex items-center md:hidden sticky top-0 bg-background z-10 -mx-4 px-4 pt-8 pb-2 gap-4">
+      <div className="sticky top-0 z-10 -mx-4 flex items-center gap-4 bg-background px-4 pt-8 pb-2 md:hidden">
         <Button
           variant="outline"
           size="sm"
           onClick={() => handleBack()}
-          className="border-border rounded-full px-2 text-muted bg-card"
+          className="rounded-full border-border bg-card px-2 text-muted"
         >
           <ChevronRightIcon className="size-5 -scale-x-100" />
         </Button>
-        <h2 className="text-lg font-bold text-foreground flex-1 text-center pr-12">Checkout</h2>
-
+        <h2 className="flex-1 pr-12 text-center text-lg font-bold text-foreground">Checkout</h2>
       </div>
 
       {cartQuery.isPending ? (
@@ -231,10 +320,32 @@ export function CheckoutPage() {
         </div>
       ) : null}
 
-      {cartQuery.data && items.length > 0 ? (
+      {pendingOrderId ? (
+        <div
+          className="mt-8 rounded-xl border border-border bg-card/50 p-6 text-center"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="text-lg font-bold text-foreground">Processando pagamento…</p>
+          <p className="mt-2 text-sm text-secondary">
+            Aguarde a confirmação da rede. Você pode atualizar a página sem criar outro pedido.
+          </p>
+        </div>
+      ) : null}
+
+      {refusedOrder ? (
+        <div className="mt-6 rounded-xl border border-destructive/40 bg-card/50 p-4" role="alert">
+          <p className="text-sm font-bold text-destructive">Pagamento recusado</p>
+          <p className="mt-1 text-sm text-secondary">
+            {refusedOrder.refuseReason ?? 'A rede recusou a transação. Seu carrinho foi preservado.'}
+          </p>
+        </div>
+      ) : null}
+
+      {cartQuery.data && items.length > 0 && !pendingOrderId ? (
         <form
           className="mt-8 grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16"
-          onSubmit={onSubmit}
+          onSubmit={(event) => void onSubmit(event)}
           noValidate
         >
           <PrimaryWalletForm values={values} errors={errors} onChange={updateField} />
@@ -246,10 +357,21 @@ export function CheckoutPage() {
               setProviderError(undefined)
             }}
             providerError={providerError}
-            submitting={createOrder.isPending}
+            submitting={processing}
             submitError={submitError}
+            quoteStaleMessage={quoteStaleMessage}
+            onQuoteChange={handleQuoteChange}
           />
         </form>
+      ) : null}
+
+      {!pendingOrderId && items.length === 0 ? (
+        <div className="mt-8">
+          <CartBreadcrumbs />
+          <Button className="mt-4" onClick={() => void navigate({ to: '/cart' })}>
+            Ir ao carrinho
+          </Button>
+        </div>
       ) : null}
 
       <OrderConfirmationDialog
@@ -259,6 +381,7 @@ export function CheckoutPage() {
           setDialogOpen(open)
           if (!open) {
             setConfirmedOrder(null)
+            void navigate({ to: '/' })
           }
         }}
       />

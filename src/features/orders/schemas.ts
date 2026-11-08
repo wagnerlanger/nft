@@ -12,18 +12,25 @@ export const orderItemSchema = z.object({
   lineTotalEth: z.string(),
 })
 
+export const orderStatusSchema = z.enum(['pending', 'confirmed', 'refused'])
+
 export const orderSchema = z.object({
   id: z.string(),
   userId: z.string(),
-  status: z.literal('confirmed'),
-  txHash: z.string(),
+  status: orderStatusSchema,
+  version: z.number().int().positive(),
+  txHash: z.string().nullable(),
   createdAt: z.string(),
+  updatedAt: z.string(),
   walletProvider: walletProviderSchema,
   networkFeeEth: z.string(),
   discountEth: z.string(),
   subtotalEth: z.string(),
   totalEth: z.string(),
+  quoteFingerprint: z.string(),
+  promoCode: z.string().nullable(),
   items: z.array(orderItemSchema),
+  refuseReason: z.string().optional(),
 })
 
 export const ordersListSchema = z.object({
@@ -46,6 +53,7 @@ export const createOrderBodySchema = z.object({
   useOtherWallet: z.boolean(),
   collectorNote: z.string().trim().optional(),
   promoCode: z.string().trim().optional(),
+  quoteFingerprint: z.string().trim().min(1),
 })
 
 export type CreateOrderBody = z.infer<typeof createOrderBodySchema>

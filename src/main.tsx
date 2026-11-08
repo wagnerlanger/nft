@@ -13,7 +13,9 @@ import '@/styles/globals.css'
 async function enableMocking() {
   if (import.meta.env.VITE_ENABLE_MSW === 'false') return
   const { worker } = await import('@/mocks/browser')
+  const { exposeDemoHelpers } = await import('@/mocks/reset')
   await worker.start({ onUnhandledFrame: 'bypass' })
+  exposeDemoHelpers()
 }
 
 const root = document.getElementById('root')

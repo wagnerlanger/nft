@@ -11,7 +11,8 @@ import type { Order } from '@/features/orders/types'
 import { formatTokenNumber } from '@/mocks/fixtures/nfts'
 import { formatEth } from '@/shared/formatters/eth'
 
-function truncateTxHash(hash: string) {
+function truncateTxHash(hash: string | null) {
+  if (!hash) return '—'
   if (hash.length <= 12) return hash
   return `${hash.slice(0, 6)}...${hash.slice(-4)}`
 }
@@ -33,7 +34,7 @@ export function OrderConfirmationDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  if (!order) return null
+  if (!order || order.status !== 'confirmed') return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,7 +107,7 @@ export function OrderConfirmationDialog({
           </ul>
         </div>
 
-        <dl className="mt-4 space-y-2 text-sm border-b border-border pb-6">
+        <dl className="mt-4 space-y-2 border-b border-border pb-6 text-sm">
           <div className="flex items-center justify-between gap-3">
             <dt className="text-foreground-soft">Taxa de rede</dt>
             <dd className="tabular-nums text-foreground">{formatEth(order.networkFeeEth)}</dd>
@@ -125,12 +126,15 @@ export function OrderConfirmationDialog({
         </p>
         <div className="text-center">
           <Button asChild className="mt-6 tracking-wide">
-            <a href={`https://etherscan.io/tx/${order.txHash}`} target="_blank" rel="noreferrer">
+            <a
+              href={`https://etherscan.io/tx/${order.txHash ?? ''}`}
+              target="_blank"
+              rel="noreferrer"
+            >
               Ver no Etherscan
             </a>
           </Button>
         </div>
-
       </DialogContent>
     </Dialog>
   )

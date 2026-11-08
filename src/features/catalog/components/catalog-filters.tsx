@@ -24,7 +24,7 @@ export function CatalogFilters({ idPrefix, search, facets, onSearchChange }: Cat
   const priceKey = `${urlMin}|${urlMax}`
   const [range, setRange] = useState([toCents(urlMin), toCents(urlMax)])
   const [syncedPrice, setSyncedPrice] = useState(priceKey)
-  const { filtersOpen, setFiltersOpen } = useCatalogFiltersUi()
+  const { setFiltersOpen } = useCatalogFiltersUi()
 
   if (priceKey !== syncedPrice) {
     setSyncedPrice(priceKey)

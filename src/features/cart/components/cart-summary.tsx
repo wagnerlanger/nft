@@ -1,24 +1,64 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  cartGrandTotalEth,
-  NETWORK_FEE_ETH,
-  sumSubtotalEth,
-} from '@/features/cart/utils/totals'
-import type { CartItem } from '@/features/cart/types'
-import { formatEth } from '@/shared/formatters/eth'
 import { useAuth } from '@/features/auth/auth-context'
+import { NETWORK_FEE_ETH } from '@/features/cart/utils/totals'
+import {
+  useApplyPromo,
+  useClearPromo,
+  useQuote,
+} from '@/features/quote/hooks/use-quote'
+import { formatEth } from '@/shared/formatters/eth'
 
-export function CartSummary({ items }: { items: CartItem[] }) {
+export function CartSummary({ itemCount }: { itemCount: number }) {
   const navigate = useNavigate()
-  const [promoCode, setPromoCode] = useState('')
-  const subtotal = sumSubtotalEth(items)
   const { isAuthenticated, session, openAuth } = useAuth()
-  const discount = '00.00'
-  const total = cartGrandTotalEth(subtotal, discount, NETWORK_FEE_ETH)
+  const quoteQuery = useQuote(itemCount > 0)
+  const applyPromo = useApplyPromo()
+  const clearPromo = useClearPromo()
+
+  const [promoCode, setPromoCode] = useState('')
+  const [promoMessage, setPromoMessage] = useState<string>()
+
+  useEffect(() => {
+    if (quoteQuery.data?.promoStatus === 'applied' && quoteQuery.data.promoCode) {
+      setPromoCode(quoteQuery.data.promoCode)
+    }
+  }, [quoteQuery.data?.promoCode, quoteQuery.data?.promoStatus])
+
+  const quote = quoteQuery.data
+  const subtotal = quote?.subtotalEth ?? '0'
+  const discount = quote?.discountEth ?? '0'
+  const networkFee = quote?.networkFeeEth ?? NETWORK_FEE_ETH
+  const total = quote?.totalEth ?? '0'
+
+  async function handleApplyPromo() {
+    setPromoMessage(undefined)
+    try {
+      const next = await applyPromo.mutateAsync(promoCode)
+      if (next.promoStatus === 'applied') {
+        setPromoMessage(`Cupom ${next.promoCode} aplicado.`)
+      } else if (next.promoStatus === 'expired') {
+        setPromoMessage('Este cupom está expirado.')
+      } else if (next.promoStatus === 'invalid') {
+        setPromoMessage('Cupom inválido.')
+      }
+    } catch {
+      setPromoMessage('Não foi possível validar o cupom.')
+    }
+  }
+
+  async function handleClearPromo() {
+    setPromoMessage(undefined)
+    setPromoCode('')
+    try {
+      await clearPromo.mutateAsync()
+    } catch {
+      setPromoMessage('Não foi possível remover o cupom.')
+    }
+  }
 
   return (
     <aside>
@@ -35,29 +75,55 @@ export function CartSummary({ items }: { items: CartItem[] }) {
             value={promoCode}
             onChange={(event) => setPromoCode(event.target.value)}
             placeholder="Digite o código..."
-            className="h-14 md:h-10flex-1 rounded-r-none rounded-l-full md:rounded-md"
+            className="h-14 flex-1 rounded-r-none rounded-l-full md:h-10 md:rounded-md"
+            disabled={quote?.promoStatus === 'applied'}
           />
-          <Button type="button" size="sm" className="shrink-0 h-14 md:h-10 px-4 rounded-full rounded-l-none">
-            Aplicar
-          </Button>
+          {quote?.promoStatus === 'applied' ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-14 shrink-0 rounded-l-none rounded-full px-4 md:h-10"
+              onClick={() => void handleClearPromo()}
+              disabled={clearPromo.isPending}
+            >
+              Remover
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              className="h-14 shrink-0 rounded-l-none rounded-full px-4 md:h-10"
+              onClick={() => void handleApplyPromo()}
+              disabled={applyPromo.isPending || !promoCode.trim()}
+            >
+              Aplicar
+            </Button>
+          )}
         </div>
+        {promoMessage ? (
+          <p
+            className={`mt-2 text-xs ${quote?.promoStatus === 'applied' ? 'text-accent' : 'text-destructive'}`}
+            role="status"
+          >
+            {promoMessage}
+          </p>
+        ) : null}
       </div>
 
-      <dl className="mt-6 space-y-3 text-sm">
+      <dl className="mt-6 space-y-3 text-sm" aria-busy={quoteQuery.isFetching}>
         <div className="flex items-center justify-between gap-3">
           <dt className="text-foreground-soft">Subtotal</dt>
           <dd className="tabular-nums text-foreground">{formatEth(subtotal)}</dd>
         </div>
         <div className="flex items-center justify-between gap-3">
           <dt className="text-foreground-soft">Desconto do lançamento</dt>
-          <dd className="tabular-nums text-foreground">(-) {discount}</dd>
+          <dd className="tabular-nums text-foreground">(-) {formatEth(discount)}</dd>
         </div>
         <div className="flex items-start justify-between gap-3">
-          <dt className="text-foreground-soft">
-            Taxa de rede
-          </dt>
-          <dd className="tabular-nums text-foreground text-end">
-            {formatEth(NETWORK_FEE_ETH)}
+          <dt className="text-foreground-soft">Taxa de rede</dt>
+          <dd className="text-end tabular-nums text-foreground">
+            {formatEth(networkFee)}
             <span className="mt-0.5 block text-xs text-muted">Taxa estimada</span>
           </dd>
         </div>
@@ -67,7 +133,12 @@ export function CartSummary({ items }: { items: CartItem[] }) {
         </div>
       </dl>
 
-      <Button onClick={() => (isAuthenticated && session) ? navigate({ to: '/checkout' }) : openAuth('login')} className="mt-6 w-full tracking-wide rounded-full md:rounded-md py-8 md:py-0">
+      <Button
+        onClick={() =>
+          isAuthenticated && session ? navigate({ to: '/checkout' }) : openAuth('login')
+        }
+        className="mt-6 w-full rounded-full py-8 tracking-wide md:rounded-md md:py-0"
+      >
         Conectar e finalizar
       </Button>
 

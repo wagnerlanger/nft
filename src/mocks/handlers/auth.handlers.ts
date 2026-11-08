@@ -1,6 +1,7 @@
 import { delay, http, HttpResponse } from 'msw'
 
 import {
+  expireAllSessions,
   getSessionByToken,
   loginUser,
   logoutSession,
@@ -88,6 +89,14 @@ export const authHandlers = [
       return HttpResponse.json(
         { message: 'Sessão indisponível.', code: 'auth_unavailable' },
         { status: 500 },
+      )
+    }
+
+    if (scenario === 'session_expired') {
+      expireAllSessions()
+      return HttpResponse.json(
+        { message: 'Sessão expirada ou inválida.', code: 'session_expired' },
+        { status: 401 },
       )
     }
 

@@ -115,7 +115,7 @@ export function CartPage() {
               </ul>
             </section>
 
-            <CartSummary items={items} />
+            <CartSummary itemCount={items.length} />
           </div>
 
           <CollectorsCarousel />

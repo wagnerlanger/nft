@@ -19,6 +19,13 @@ export const walletsHandlers = [
     const scenario = readScenario(request)
     await delay(scenarioDelay(scenario))
 
+    if (scenario === 'session_expired') {
+      return HttpResponse.json(
+        { message: 'Sessão expirada. Entre novamente.', code: 'session_expired' },
+        { status: 401 },
+      )
+    }
+
     const result = getWallets(request)
     if (!result.ok) {
       const payload = await result.response.json()

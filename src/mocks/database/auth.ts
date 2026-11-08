@@ -8,7 +8,11 @@ type SessionRecord = {
   token: string
   userId: string
   createdAt: string
+  expiresAt: string
 }
+
+/** Session lifetime for the mock auth layer (30 minutes). */
+export const SESSION_TTL_MS = 30 * 60 * 1000
 
 function normalizeUser(raw: Partial<UserRecord> & Pick<UserRecord, 'id' | 'email' | 'username' | 'displayName' | 'passwordHash'>): UserRecord {
   return {
@@ -139,30 +143,47 @@ export async function loginUser(input: { email: string; password: string }) {
 
 function createSession(userId: string) {
   const sessions = readSessions().filter((session) => session.userId !== userId)
+  const createdAt = Date.now()
   const session: SessionRecord = {
     token: crypto.randomUUID(),
     userId,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(createdAt).toISOString(),
+    expiresAt: new Date(createdAt + SESSION_TTL_MS).toISOString(),
   }
   sessions.push(session)
   writeSessions(sessions)
   return session
 }
 
+function isSessionExpired(session: SessionRecord) {
+  if (!session.expiresAt) return false
+  return Date.now() >= new Date(session.expiresAt).getTime()
+}
+
+export function expireAllSessions() {
+  writeSessions([])
+}
+
 export function getSessionByToken(token: string | null) {
   if (!token) return null
-  const session = readSessions().find((item) => item.token === token)
+  const sessions = readSessions()
+  const session = sessions.find((item) => item.token === token)
   if (!session) return null
+
+  if (isSessionExpired(session)) {
+    writeSessions(sessions.filter((item) => item.token !== token))
+    return null
+  }
+
   const user = readUsers().find((item) => item.id === session.userId)
   if (!user) return null
   return { token: session.token, user: publicUser(user) }
 }
 
 export function getUserByToken(token: string | null) {
-  if (!token) return null
-  const session = readSessions().find((item) => item.token === token)
+  const session = getSessionByToken(token)
   if (!session) return null
-  return readUsers().find((item) => item.id === session.userId) ?? null
+  return readUsers().find((item) => item.id === session.user.id) ?? null
 }
 
 export function updateUserProfile(
