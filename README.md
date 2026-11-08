@@ -66,9 +66,9 @@ Cupons: `KURIO10` (10% off), `EXPIRED10` (expirado).
 | `npm run test:e2e` | Playwright E2E (desktop 1440 + mobile 390) |
 | `npm run test:e2e:ui` | UI do Playwright |
 | `npm run test:visual` | Regressão visual |
-| `npm run audit:lighthouse` | Auditoria Lighthouse (3 runs → mediana) |
+| `npm run audit:lighthouse` | Lighthouse local + publicado (3 runs → mediana em `audits/summary.json`) |
 
-Antes do Lighthouse: `npm run build`.
+Antes do Lighthouse: `npm run build`. Exige rede para auditar `https://nft.wagnerlanger.com`.
 
 ## Documentação
 

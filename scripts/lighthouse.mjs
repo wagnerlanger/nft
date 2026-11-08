@@ -14,7 +14,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
 const outDir = path.join(root, 'audits')
 const PORT = 4177
-const BASE = `http://127.0.0.1:${PORT}`
+const LOCAL_BASE = `http://127.0.0.1:${PORT}`
+const PUBLISHED_BASE = 'https://nft.wagnerlanger.com'
 
 const PAGES = [
   { name: 'home', path: '/' },
@@ -25,6 +26,21 @@ const PAGES = [
 const PROFILES = [
   { name: 'mobile', formFactor: 'mobile', screenEmulation: { mobile: true, width: 390, height: 844, deviceScaleFactor: 2, disabled: false } },
   { name: 'desktop', formFactor: 'desktop', screenEmulation: { mobile: false, width: 1440, height: 900, deviceScaleFactor: 1, disabled: false } },
+]
+
+const ENVIRONMENTS = [
+  {
+    id: 'local',
+    label: 'Local (vite preview)',
+    baseUrl: LOCAL_BASE,
+    startPreview: true,
+  },
+  {
+    id: 'published',
+    label: 'Publicado (Coolify)',
+    baseUrl: PUBLISHED_BASE,
+    startPreview: false,
+  },
 ]
 
 function median(values) {
@@ -51,7 +67,7 @@ async function waitForServer(url, attempts = 60) {
     }
     await new Promise((resolve) => setTimeout(resolve, 1000))
   }
-  throw new Error(`Preview server did not start at ${url}`)
+  throw new Error(`Server did not respond at ${url}`)
 }
 
 async function runOnce(url, profile) {
@@ -73,67 +89,82 @@ async function runOnce(url, profile) {
   }
 }
 
+async function auditPages(envId, baseUrl) {
+  const pages = {}
+
+  for (const page of PAGES) {
+    pages[page.name] = {}
+    for (const profile of PROFILES) {
+      const runs = []
+      for (let i = 0; i < 3; i += 1) {
+        const lhr = await runOnce(`${baseUrl}${page.path}`, profile)
+        runs.push({
+          performance: scoreOf(lhr, 'performance'),
+          accessibility: scoreOf(lhr, 'accessibility'),
+          bestPractices: scoreOf(lhr, 'best-practices'),
+          seo: scoreOf(lhr, 'seo'),
+          lcp: metric(lhr, 'largest-contentful-paint'),
+          cls: metric(lhr, 'cumulative-layout-shift'),
+          tbt: metric(lhr, 'total-blocking-time'),
+        })
+        await writeFile(
+          path.join(outDir, `${envId}-${page.name}-${profile.name}-run${i + 1}.json`),
+          JSON.stringify(lhr, null, 2),
+        )
+      }
+
+      pages[page.name][profile.name] = {
+        performance: median(runs.map((r) => r.performance)),
+        accessibility: median(runs.map((r) => r.accessibility)),
+        bestPractices: median(runs.map((r) => r.bestPractices)),
+        seo: median(runs.map((r) => r.seo)),
+        lcpMs: median(runs.map((r) => r.lcp ?? 0)),
+        cls: median(runs.map((r) => r.cls ?? 0)),
+        tbtMs: median(runs.map((r) => r.tbt ?? 0)),
+        runs,
+      }
+    }
+  }
+
+  return pages
+}
+
+async function auditEnvironment({ id, label, baseUrl, startPreview }) {
+  let preview = null
+
+  if (startPreview) {
+    preview = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', String(PORT)], {
+      cwd: root,
+      stdio: 'ignore',
+      shell: true,
+    })
+  }
+
+  try {
+    await waitForServer(baseUrl)
+    const pages = await auditPages(id, baseUrl)
+    return { label, baseUrl, pages }
+  } finally {
+    preview?.kill('SIGTERM')
+  }
+}
+
 async function main() {
   await mkdir(outDir, { recursive: true })
 
-  const preview = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', String(PORT)], {
-    cwd: root,
-    stdio: 'ignore',
-    shell: true,
-  })
-
-  try {
-    await waitForServer(BASE)
-
-    const summary = {
-      generatedAt: new Date().toISOString(),
-      environment: {
-        node: process.version,
-        lighthouse: 'see package-lock',
-        baseUrl: BASE,
-      },
-      pages: {},
-    }
-
-    for (const page of PAGES) {
-      summary.pages[page.name] = {}
-      for (const profile of PROFILES) {
-        const runs = []
-        for (let i = 0; i < 3; i += 1) {
-          const lhr = await runOnce(`${BASE}${page.path}`, profile)
-          runs.push({
-            performance: scoreOf(lhr, 'performance'),
-            accessibility: scoreOf(lhr, 'accessibility'),
-            bestPractices: scoreOf(lhr, 'best-practices'),
-            seo: scoreOf(lhr, 'seo'),
-            lcp: metric(lhr, 'largest-contentful-paint'),
-            cls: metric(lhr, 'cumulative-layout-shift'),
-            tbt: metric(lhr, 'total-blocking-time'),
-          })
-          await writeFile(
-            path.join(outDir, `${page.name}-${profile.name}-run${i + 1}.json`),
-            JSON.stringify(lhr, null, 2),
-          )
-        }
-
-        summary.pages[page.name][profile.name] = {
-          performance: median(runs.map((r) => r.performance)),
-          accessibility: median(runs.map((r) => r.accessibility)),
-          bestPractices: median(runs.map((r) => r.bestPractices)),
-          seo: median(runs.map((r) => r.seo)),
-          lcpMs: median(runs.map((r) => r.lcp ?? 0)),
-          cls: median(runs.map((r) => r.cls ?? 0)),
-          tbtMs: median(runs.map((r) => r.tbt ?? 0)),
-          runs,
-        }
-      }
-    }
-
-    await writeFile(path.join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))
-    console.log(JSON.stringify(summary, null, 2))
-  } finally {
-    preview.kill('SIGTERM')
+  const summary = {
+    generatedAt: new Date().toISOString(),
+    node: process.version,
+    environments: {},
   }
+
+  for (const env of ENVIRONMENTS) {
+    console.error(`Auditing ${env.id} (${env.baseUrl})…`)
+    summary.environments[env.id] = await auditEnvironment(env)
+  }
+
+  await writeFile(path.join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))
+  console.log(JSON.stringify(summary, null, 2))
 }
 
 main().catch((error) => {

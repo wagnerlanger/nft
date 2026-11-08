@@ -83,7 +83,7 @@ export function CartSummary({ itemCount }: { itemCount: number }) {
               type="button"
               size="sm"
               variant="outline"
-              className="h-14 shrink-0 rounded-full rounded-l-none px-4 md:h-10"
+              className="h-14 shrink-0 rounded-full md:rounded-r-md rounded-l-none px-4 md:h-10"
               onClick={() => void handleClearPromo()}
               disabled={clearPromo.isPending}
             >
