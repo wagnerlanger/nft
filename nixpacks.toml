@@ -1,0 +1,8 @@
+# Playwright/Lighthouse live in the repo for local tests only.
+# Nixpacks auto-installs Chromium + GPU libs when it sees them — skip that on deploy.
+[phases.setup]
+aptPkgs = []
+
+[variables]
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+CHROME_PATH = ""
