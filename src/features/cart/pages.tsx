@@ -76,7 +76,7 @@ export function CartPage() {
 
       {cartQuery.data && items.length === 0 ? (
         <>
-          <div className="md:mt-8 max-w-lg text-center">
+          <div className="md:mt-8 max-w-lg text-center mx-auto">
             <AccountPlaceholder title="Seu carrinho está vazio" description="Explore o mercado e adicione NFTs para continuar a compra." icon={CartIcon} />
             <Button asChild className="mt-6">
               <Link to="/" hash="catalogo">

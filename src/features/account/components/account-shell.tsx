@@ -12,10 +12,6 @@ export function AccountShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 pb-8 md:px-8 md:py-10 xl:px-[120px] md:bg-transparent">
-      <div className="hidden md:block">
-        <CartBreadcrumbs />
-      </div>
-
       <div className="flex items-center md:hidden sticky top-0 bg-background z-50 -mx-4 px-4 pt-8 pb-2 gap-4">
         <Button
           variant="outline"

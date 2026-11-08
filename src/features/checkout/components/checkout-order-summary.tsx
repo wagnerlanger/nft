@@ -126,7 +126,7 @@ export function CheckoutOrderSummary({
                 value={promoCode}
                 onChange={(event) => setPromoCode(event.target.value)}
                 placeholder="Digite o código..."
-                className="flex-1 rounded-r-none"
+                className="h-14 flex-1 rounded-r-none rounded-l-full md:h-10 md:rounded-l-md"
                 disabled={quote?.promoStatus === 'applied'}
               />
               {quote?.promoStatus === 'applied' ? (
@@ -134,7 +134,7 @@ export function CheckoutOrderSummary({
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="h-10 shrink-0 rounded-l-none px-4"
+                  className="h-14 shrink-0 rounded-full md:rounded-r-md rounded-l-none px-4 md:h-10"
                   onClick={() => void handleClearPromo()}
                   disabled={clearPromo.isPending}
                 >
@@ -144,7 +144,7 @@ export function CheckoutOrderSummary({
                 <Button
                   type="button"
                   size="sm"
-                  className="h-10 shrink-0 rounded-l-none px-4"
+                  className="h-14 shrink-0 rounded-full md:rounded-r-md rounded-l-none px-4 md:h-10"
                   onClick={() => void handleApplyPromo()}
                   disabled={applyPromo.isPending || !promoCode.trim()}
                 >
