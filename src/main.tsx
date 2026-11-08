@@ -18,10 +18,19 @@ async function enableMocking() {
   exposeDemoHelpers()
 }
 
+function registerPwa() {
+  // MSW and the PWA service worker share the same scope — only one can own it.
+  if (import.meta.env.VITE_ENABLE_MSW !== 'false') return
+  void import('virtual:pwa-register').then(({ registerSW }) => {
+    registerSW({ immediate: true })
+  })
+}
+
 const root = document.getElementById('root')
 if (!root) throw new Error('Elemento #root não encontrado.')
 
 void enableMocking().then(() => {
+  registerPwa()
   createRoot(root).render(
     <StrictMode>
       <AppProviders>

@@ -10,6 +10,9 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "pwa:icons": "node scripts/pwa-icons.mjs",
+    "build:pwa": "npm run pwa:icons && VITE_ENABLE_MSW=false npm run build",
+    "preview:pwa": "VITE_ENABLE_MSW=false vite preview",
     "typecheck": "tsc --noEmit --pretty false",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -60,10 +63,12 @@
     "lighthouse": "^13.6.0",
     "msw": "^3.0.4",
     "prettier": "^3.9.10",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
-    "vite": "^8.3.6"
+    "vite": "^8.3.6",
+    "vite-plugin-pwa": "^2.0.0"
   },
   "msw": {
     "workerDirectory": [

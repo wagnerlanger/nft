@@ -120,5 +120,6 @@
   border-radius: 50%;
   background: #e8a33d;
   color: var(--card);
-  font-size: 28px;
+  display: grid;
+  place-items: center;
 }

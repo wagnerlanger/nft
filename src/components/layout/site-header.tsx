@@ -264,7 +264,9 @@ export function SiteHeader() {
                 <UserSolidIcon className="size-5" />
             </Button>
           </div>
-          <button className="fab">+</button>
+          <button className="fab" aria-label="Menu">
+            <img src="/images/menu.svg" alt="" className="size-6" />
+          </button>
         </div>
       </div>
 
