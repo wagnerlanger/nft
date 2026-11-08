@@ -38,7 +38,7 @@ export function OrderConfirmationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[min(100%-2rem,40rem)] max-w-none p-6 md:p-8">
+      <DialogContent className="p-6 md:w-[min(100%-2rem,40rem)] md:max-w-none md:p-8">
         <div className="flex flex-col items-center text-center">
           <ThankYouIcon className="size-16 text-primary md:size-20" />
           <DialogTitle className="mt-4 text-lg font-bold text-foreground md:text-xl">

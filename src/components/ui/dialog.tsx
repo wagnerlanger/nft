@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type ComponentProps,
   type ReactNode,
@@ -13,6 +14,24 @@ import { MOTION_EASE } from '@/shared/motion/variants'
 import { cn } from '@/shared/utils/cn'
 
 const DialogOpenContext = createContext(false)
+
+const MD_QUERY = '(min-width: 768px)'
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(MD_QUERY).matches : true,
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia(MD_QUERY)
+    const onChange = () => setIsDesktop(media.matches)
+    onChange()
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
+
+  return isDesktop
+}
 
 export function Dialog({
   open: openProp,
@@ -55,6 +74,7 @@ export function DialogContent({
 }: ComponentProps<typeof DialogPrimitive.Content> & { showClose?: boolean }) {
   const open = useContext(DialogOpenContext)
   const prefersReducedMotion = useReducedMotion()
+  const isDesktop = useIsDesktop()
 
   const overlayTransition = prefersReducedMotion
     ? { duration: 0 }
@@ -64,13 +84,33 @@ export function DialogContent({
     ? { duration: 0 }
     : { duration: 0.35, ease: MOTION_EASE }
 
+  const contentMotion = isDesktop
+    ? {
+        initial: prefersReducedMotion
+          ? { opacity: 0, x: '-50%', y: '-50%' }
+          : { opacity: 0, x: '-50%', y: 'calc(-50% + 16px)' },
+        animate: { opacity: 1, x: '-50%', y: '-50%' },
+        exit: prefersReducedMotion
+          ? { opacity: 0, x: '-50%', y: '-50%' }
+          : { opacity: 0, x: '-50%', y: 'calc(-50% + 16px)' },
+      }
+    : {
+        initial: prefersReducedMotion
+          ? { opacity: 0, x: 0, y: 0 }
+          : { opacity: 0, x: 0, y: 16 },
+        animate: { opacity: 1, x: 0, y: 0 },
+        exit: prefersReducedMotion
+          ? { opacity: 0, x: 0, y: 0 }
+          : { opacity: 0, x: 0, y: 16 },
+      }
+
   return (
     <DialogPrimitive.Portal forceMount>
       <AnimatePresence>
         {open ? (
           <DialogPrimitive.Overlay key="dialog-overlay" asChild forceMount>
             <motion.div
-              className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+              className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -82,20 +122,14 @@ export function DialogContent({
           <DialogPrimitive.Content key="dialog-content" asChild forceMount {...props}>
             <motion.div
               className={cn(
-                'fixed top-1/2 left-1/2 z-50 max-h-[min(100vh-2rem,44rem)] w-[min(100%-2rem,500px)] overflow-y-auto border-b-10 border-primary bg-card p-6 shadow-xl focus:outline-none',
+                'fixed z-[100] overflow-y-auto border-b-10 border-primary bg-card p-6 shadow-xl focus:outline-none',
+                'inset-0 h-dvh max-h-none w-full rounded-none',
+                'md:inset-auto md:top-1/2 md:left-1/2 md:h-auto md:max-h-[min(100vh-2rem,44rem)] md:w-[min(100%-2rem,500px)]',
                 className,
               )}
-              initial={
-                prefersReducedMotion
-                  ? { opacity: 0, x: '-50%', y: '-50%' }
-                  : { opacity: 0, x: '-50%', y: 'calc(-50% + 16px)' }
-              }
-              animate={{ opacity: 1, x: '-50%', y: '-50%' }}
-              exit={
-                prefersReducedMotion
-                  ? { opacity: 0, x: '-50%', y: '-50%' }
-                  : { opacity: 0, x: '-50%', y: 'calc(-50% + 16px)' }
-              }
+              initial={contentMotion.initial}
+              animate={contentMotion.animate}
+              exit={contentMotion.exit}
               transition={contentTransition}
             >
               {children as ReactNode}

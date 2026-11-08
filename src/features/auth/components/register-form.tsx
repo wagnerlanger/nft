@@ -165,7 +165,7 @@ export function RegisterForm() {
       ) : null}
 
       <SubmitButton loading={isRegistering} className="h-11 w-full">
-        Criar conta
+        Criar perfil
       </SubmitButton>
 
       <SocialAuthButtons />

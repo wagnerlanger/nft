@@ -1,12 +1,13 @@
-import { useAuth } from '@/features/auth/auth-context'
-import { LoginForm } from '@/features/auth/components/login-form'
-import { RegisterForm } from '@/features/auth/components/register-form'
+import { BrandLogo } from '@/components/brand-logo'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useAuth } from '@/features/auth/auth-context'
+import { LoginForm } from '@/features/auth/components/login-form'
+import { RegisterForm } from '@/features/auth/components/register-form'
 import { cn } from '@/shared/utils/cn'
 
 export function AuthModal() {
@@ -19,9 +20,13 @@ export function AuthModal() {
         if (!open) closeAuth()
       }}
     >
-      <DialogContent className="w-[min(100%-1.5rem,500px)] max-md:max-h-[min(100vh-1.5rem,40rem)] max-md:rounded-2xl max-md:p-5 max-md:pt-10 md:p-14">
+      <DialogContent className="max-md:p-5 max-md:pt-12 md:w-[min(100%-1.5rem,500px)] md:p-14 flex flex-col items-center justify-center">
         <div className="mb-5 text-center md:mb-6">
-          <div className="flex items-center justify-center gap-3 text-base font-bold md:text-lg">
+          <div className="md:hidden">
+            <BrandLogo className="text-base" />
+          </div>
+
+          <div className="hidden items-center justify-center gap-3 text-lg font-bold md:flex">
             <button
               type="button"
               className={cn(
@@ -46,10 +51,22 @@ export function AuthModal() {
               Criar conta
             </button>
           </div>
-          <DialogTitle className="sr-only">
-            {authTab === 'login' ? 'Entrar' : 'Criar conta'}
+
+          <DialogTitle
+            className={cn(
+              'text-base font-bold text-foreground md:sr-only',
+              'mt-6 md:mt-0',
+            )}
+          >
+            {authTab === 'login' ? 'Entrar' : 'Criar perfil de colecionador'}
           </DialogTitle>
-          <DialogDescription className="mt-3 text-sm text-foreground">
+
+          <DialogDescription
+            className={cn(
+              'text-sm text-foreground',
+              'sr-only md:not-sr-only md:mt-3',
+            )}
+          >
             {authTab === 'login'
               ? 'Entre para gerenciar sua carteira, coleção e perfil de criador.'
               : 'Crie seu perfil de colecionador e conecte uma carteira quando quiser.'}
@@ -57,6 +74,26 @@ export function AuthModal() {
         </div>
 
         {authTab === 'login' ? <LoginForm /> : <RegisterForm />}
+
+        <p className="mt-6 text-center text-sm text-foreground md:hidden">
+          {authTab === 'login' ? (
+            <button
+              type="button"
+              className="transition-colors hover:text-primary"
+              onClick={() => setAuthTab('register')}
+            >
+              Novo na Kurio? Crie uma conta
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="transition-colors hover:text-primary"
+              onClick={() => setAuthTab('login')}
+            >
+              Já tem uma conta? Entre
+            </button>
+          )}
+        </p>
       </DialogContent>
     </Dialog>
   )

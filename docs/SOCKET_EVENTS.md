@@ -40,7 +40,7 @@ Só aplica se `userId` = sessão atual. Atualiza cache de pedidos; confirmação
 ## Mock MSW
 
 - Binding: `@mswjs/socket.io-binding` + `ws.link` em `src/mocks/socket/handlers.ts`
-- Peer do binding declara MSW 2; o projeto usa MSW 3 com `--legacy-peer-deps` — documentado como limitação
+- Peer do binding declara MSW 2; o projeto usa MSW 3. `.npmrc` define `legacy-peer-deps=true` para install/deploy (limitação conhecida)
 - Emissão de pedidos via `subscribeOrderUpdates` no mock DB
 - Cenário `price_change`: ao GET `/cart`, agenda bump de preço do primeiro item
 
