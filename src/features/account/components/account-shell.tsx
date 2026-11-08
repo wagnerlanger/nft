@@ -2,7 +2,6 @@ import { useState, type ReactNode } from 'react'
 
 import { AccountSidebar } from '@/features/account/components/account-sidebar'
 import { Button } from '@/components/ui/button'
-import { CartBreadcrumbs } from '@/features/cart/components/cart-breadcrumbs'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { ChevronRightIcon, CloseIcon, MenuIcon } from '@/components/icons'
 import { useHandleBack } from '../hooks/use-handle-back'
